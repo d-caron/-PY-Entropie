@@ -46,7 +46,7 @@ NB_ROWS = 5         # Nombre de rows de la grille
 PINK = "#ff1493"    # Couleur pions j1
 CYAN = "#00ffff"    # Couleur pions j2
 # Taille des pions
-TOKEN_LEN = (SCALE/5, SCALE/5, 4*SCALE/5, 4*SCALE/5)
+TOKEN_MARGIN = 10
 
 
 #=========================
@@ -64,9 +64,16 @@ game = PanedWindow(interface,
         orient=VERTICAL)
 menu = PanedWindow(interface, 
         orient=VERTICAL)
-j2_frame = Frame(interface)
-j1_frame = Frame(interface)
-grid_frame = Frame(interface)
+# Les 2 frames suivantes contiendront plus tard des informations sur les
+# 2 joueurs et leurs score (pions bloqués par exemple)
+j2_infos = PanedWindow(game,
+        orient=HORIZONTAL)
+j1_infos = PanedWindow(game,
+        orient=HORIZONTAL)
+grid_canvas = (Canvas(game, 
+                    width=NB_COLS*SCALE, 
+                    height=NB_ROWS*SCALE, 
+                    highlightthickness=0))
 
 # Objets interactifs (boutons / champs de saisies / etc...)
 btn_start = Button(menu, 
@@ -85,7 +92,6 @@ btn_send = Button(menu,
         text="TESTER", 
         bg="#848484",
         highlightbackground="#424242")
-entry = StringVar() #stockera en temps réel le contenu de fld_position.
 fld_position = Entry(menu,
         width=7,)
 
@@ -100,7 +106,7 @@ fld_position = Entry(menu,
 [-------game-------] [----menu-----]
 
 |===================|==============|
-| j2_frame          |              |
+| j2_infos          |              |
 |___________________| btn_start    |
 |                   | btn_middle   |
 |                   | btn_end      |
@@ -108,7 +114,7 @@ fld_position = Entry(menu,
 |                   |              |
 |                   | fld_position |
 |___________________| btn_send     |
-| j1_frame          |              |
+| j1_infos          |              |
 |___________________|______________|             
 """
 
@@ -117,128 +123,109 @@ fld_position = Entry(menu,
 # FONCTIONS
 
 # Dessine la grille
-def draw_grid(parent, grid):
+def draw_grid(canvas, grid):
     for row in range(NB_ROWS):
         for col in range(NB_COLS):
-            # Présentation en grille
-            grid[row][col].grid(row=row, column=col)
+            # Variables de position (x1, y1) et (x2, y2) pour les rectangles
+            x1 = col*SCALE
+            y1 = row*SCALE
+            x2 = col*SCALE+SCALE
+            y2 = row*SCALE+SCALE
 
-            # Création des rectangles gris représentant les cases
+            # Création des rectangles gris foncés
+            # représentant les cases de la grille
             if (row+col)%2 == 0:
-                grid[row][col].create_rectangle(0, 0, SCALE, SCALE, 
+                canvas.create_rectangle(x1, y1, x2, y2, 
                         fill="#424242")
+
+            # Création des rectangles gris clair
+            # représentant les cases de la grille
             else:
-                grid[row][col].create_rectangle(0, 0, SCALE, SCALE, 
+                canvas.create_rectangle(x1, y1, x2, y2, 
                         fill="#848484")
-    
-    interface.pack()
-    return grid_frame
 
 # Dessine les pions sur la grille
-def draw_tokens(grid, tokens):
-    for token in tokens:
-        grid[token[1]][token[2]].create_oval(*TOKEN_LEN, fill=token[0])
-
-# Initialise une liste de listes vide pour représenter la grille 
-# en "2 dimensions"
-def init_grid(grid_frame, grid):
+def draw_tokens(canvas, grid):
     for row in range(NB_ROWS):
-        grid.append([])
-        for cols in range(NB_COLS):
-            grid[row].append(Canvas(grid_frame, 
-                    width=SCALE, 
-                    height=SCALE, 
-                    highlightthickness=0))
+        for col in range(NB_COLS):
+            # Variables de position (x1, y1) et (x2, y2) pour les rectangles
+            x1 = col*SCALE + TOKEN_MARGIN
+            x2 = row*SCALE + TOKEN_MARGIN
+            y1 = col*SCALE+SCALE - TOKEN_MARGIN
+            y2 = row*SCALE+SCALE - TOKEN_MARGIN
+
+            # Création des ronds représentant les pions roses.
+            if grid[row][col]==1:
+                canvas.create_oval(x1, x2, y1, y2, fill=PINK)
+
+            # Création des ronds représentant les pions roses.
+            elif grid[row][col]==2:
+                canvas.create_oval(x1, x2, y1, y2, fill=CYAN)
 
 # Initialise une liste de listes représentant les pions 
 # [couleur, coordonée_x, coordonée_y]
-def init_tokens_start():
+def init_grid_start():
 
-    return [[PINK, 0, 0], 
-            [PINK, 0, 1],
-            [PINK, 0, 2],
-            [PINK, 0, 3],
-            [PINK, 0, 4],
-            [PINK, 1, 0],
-            [PINK, 1, 4],
-            [CYAN, 4, 0],
-            [CYAN, 4, 1],
-            [CYAN, 4, 2],
-            [CYAN, 4, 3],
-            [CYAN, 4, 4],
-            [CYAN, 3, 0],
-            [CYAN, 3, 4]]
+    return [[1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0],
+            [2, 0, 0, 0, 2],
+            [2, 2, 2, 2, 2]]
+                
+def init_grid_middle():
 
-def init_tokens_middle():
-
-    return [[PINK, 0, 0], 
-            [PINK, 3, 1],
-            [PINK, 4, 2],
-            [PINK, 0, 2],
-            [PINK, 0, 4],
-            [PINK, 1, 0],
-            [PINK, 3, 4],
-            [CYAN, 4, 0],
-            [CYAN, 3, 2],
-            [CYAN, 2, 4],
-            [CYAN, 0, 3],
-            [CYAN, 4, 4],
-            [CYAN, 3, 0],
-            [CYAN, 0, 1]]
+    return [[1, 2, 1, 2, 1],
+            [1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 2],
+            [2, 1, 2, 0, 1],
+            [2, 0, 1, 0, 2]]  
     
-def init_tokens_end():
+def init_grid_end():
 
-    return [[PINK, 0, 1], 
-            [PINK, 0, 4],
-            [PINK, 1, 0],
-            [PINK, 1, 3],
-            [PINK, 2, 4],
-            [PINK, 3, 1],
-            [PINK, 4, 3],
-            [CYAN, 0, 0],
-            [CYAN, 0, 4],
-            [CYAN, 2, 0],
-            [CYAN, 3, 4],
-            [CYAN, 4, 0],
-            [CYAN, 4, 2],
-            [CYAN, 4, 4]]
-
+    return [[2, 1, 0, 2, 1],
+            [1, 0, 0, 1, 0],
+            [2, 0, 0, 0, 1],
+            [0, 1, 0, 0, 2],
+            [2, 0, 2, 1, 2]]
+            
 # Affichage de game (colonne de gauche de l'interface).
 # Cette fonction fait appel à la fonction draw_grid(...) pour afficher 
 # la grille.
-def show_game(parent, j2_frame, grid_frame, j1_frame, grid):
-    parent.pack(side=TOP)
+def show_game(game, j2_infos, grid_canvas, j1_infos, grid):
+    # Affichage de la colone game aligné en haut de l'interface
+    game.pack(side=TOP)
 
-    player_1_name = Label(j2_frame, text="Joueur 2")
-    player_1_name.pack(side=LEFT)
-    parent.add(j2_frame, sticky="nw")
+    player2_name = Label(j2_infos, text="Joueur 2")
+    player2_name.pack(side=LEFT)
+    game.add(j2_infos, sticky="nw")
 
-    grid_frame = draw_grid(parent, grid)
-    parent.add(grid_frame)
+    draw_grid(grid_canvas, grid)
+    draw_tokens(grid_canvas, grid)
+    game.add(grid_canvas)
 
-    player_2_name = Label(j1_frame, text="Joueur 1")
-    player_2_name.pack(side=LEFT)
-    parent.add(j1_frame, sticky="nw")
+    player1_name = Label(j1_infos, text="Joueur 1")
+    player1_name.pack(side=LEFT)
+    game.add(j1_infos, sticky="nw")
 
-    return parent
+    return game
 
-def show_menu(parent, btn_start, btn_middle, btn_end):
-    parent.config(width=280)
-    parent.pack(side=TOP)
+def show_menu(menu, btn_start, btn_middle, btn_end):
+    # Affichage de la colone menu aligné en haut de l'interface
+    menu.pack(side=TOP)
 
-    parent.add(Label(text="Choisissez une configuration :"), sticky="nw")
-    parent.add(btn_start, width=135, sticky="nw")
-    parent.add(btn_middle, width=135, sticky="nw")
-    parent.add(btn_end, width=135, sticky="nw")
-    parent.add(Label(text="\n" + 
+    menu.add(Label(text="Choisissez une configuration :"), sticky="nw")
+    menu.add(btn_start, width=135, sticky="nw")
+    menu.add(btn_middle, width=135, sticky="nw")
+    menu.add(btn_end, width=135, sticky="nw")
+    menu.add(Label(text="\n" + 
             "Teste si une case est dans la grille, \n" +
             "Format autorisé (x, y) [ex: (0, 4)] :"
             , justify=LEFT), sticky="nw")
-    parent.add(fld_position, sticky="nw")
+    menu.add(fld_position, sticky="nw")
     fld_position.focus()
-    parent.add(btn_send, sticky="nw")
+    menu.add(btn_send, sticky="nw")
 
-    return parent
+    return menu
 
 # Fonction est_dans_grille, mais comme depuis le début, j'avais écris mes 
 # fonctions en anglais, celle là n'échappe pas à la règle...
@@ -248,11 +235,16 @@ def in_grid(position):
             + "Le champ de saisie est vide. " \
             + "Vous devez le remplir avec des coordonnées, au format indiqué"
 
-    position = eval(position.get())
+    try:
+        position = eval(position.get())
+    except:
+        raise AssertionError("ERREUR_FORMAT : " \
+                + "Vous devez entrer les coordonées au format (x, y). " \
+                + "Par exemple (1, 3) ou (2, 0)")
 
     assert type(position)==tuple and len(position)==2, "ERREUR_FORMAT : " \
             + "Vous devez entrer les coordonées au format (x, y). " \
-            + "Par exemple (1, 3) ou (2, 0)"
+            + "Par exemple (1, 3) ou 2, 0"
 
     assert type(position[0])==int and type(position[1])==int, "ERREUR_TYPE :" \
             + "x et y doivent etre des des entiers."
@@ -271,21 +263,21 @@ def in_grid(position):
 # Ici, c'est l'évenement du clic sur les boutons qui est en jeu.
 
 def event_change_config_to_begin():
-    tokens = init_tokens_start()
-    draw_grid(grid_frame, grid)
-    draw_tokens(grid, tokens)
+    grid = init_grid_start()
+    draw_grid(grid_canvas, grid)
+    draw_tokens(grid_canvas, grid)
     interface.pack()
 
 def event_change_config_to_middle():
-    tokens = init_tokens_middle()
-    draw_grid(grid_frame, grid)
-    draw_tokens(grid, tokens)
+    grid = init_grid_middle()
+    draw_grid(grid_canvas, grid)
+    draw_tokens(grid_canvas, grid)
     interface.pack()
 
 def event_change_config_to_end():
-    tokens = init_tokens_end()
-    draw_grid(grid_frame, grid)
-    draw_tokens(grid, tokens)
+    grid = init_grid_end()
+    draw_grid(grid_canvas, grid)
+    draw_tokens(grid_canvas, grid)
     interface.pack()
 
 def event_test_in_grid():
@@ -296,8 +288,8 @@ def event_test_in_grid():
 
 # Initialisation et affichage de la grille
 # et de l'interface.
-init_grid(grid_frame, grid)
-interface.add(show_game(game, j2_frame, grid_frame, j1_frame, grid))
+grid = init_grid_start()
+interface.add(show_game(game, j2_infos, grid_canvas, j1_infos, grid))
 interface.add(show_menu(menu, btn_start, btn_middle, btn_end))
 interface.pack()
 
@@ -306,10 +298,6 @@ btn_start.config(command=event_change_config_to_begin)
 btn_middle.config(command=event_change_config_to_middle)
 btn_end.config(command=event_change_config_to_end)
 btn_send.config(command=event_test_in_grid)
-
-# Initialisation et affichage des pions
-tokens = init_tokens_start()
-draw_tokens(grid, tokens)
 
 # Renommage de la fenetre
 window.title("Entropie")
