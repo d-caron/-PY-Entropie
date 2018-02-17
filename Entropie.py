@@ -59,17 +59,28 @@ tokens = []
 # Variables graphiques
 window = Tk()
 interface = PanedWindow(window, 
-        orient=HORIZONTAL)
+        orient=HORIZONTAL,
+        bg="#242424")
 game = PanedWindow(interface, 
-        orient=VERTICAL)
+        orient=VERTICAL,
+        bg="#242424")
 menu = PanedWindow(interface, 
-        orient=VERTICAL)
-lbl_j2 = Label(game)
-lbl_j1 = Label(game)
+        orient=VERTICAL,
+        bg="#242424")
+lbl_j2 = Label(game,
+        bg="#242424",
+        fg=PINK)
+lbl_j1 = Label(game,
+        bg="#242424",
+        fg=CYAN)
 grid_canvas = (Canvas(game, 
         width=NB_COLS*SCALE, 
         height=NB_ROWS*SCALE, 
         highlightthickness=0))
+
+# Scores joueurs
+score_j1 = IntVar(game, value=0)
+score_j2 = IntVar(game, value=0)
 
 # Objets interactifs (boutons / champs de saisies / etc...)
 btn_start = Button(menu, 
@@ -89,7 +100,9 @@ btn_send = Button(menu,
         bg="#848484",
         highlightbackground="#424242")
 fld_position = Entry(menu,
-        width=7,)
+        width=7,
+        bg="#DADADA",
+        fg="#242424")
 
 
 #=========================
@@ -161,6 +174,7 @@ def draw_tokens(canvas, grid):
 # Initialise une liste de listes représentant les pions 
 # [couleur, coordonée_x, coordonée_y]
 def init_grid_start():
+   
 
     return [[1, 1, 1, 1, 1],
             [1, 0, 0, 0, 1],
@@ -177,6 +191,7 @@ def init_grid_middle():
             [2, 0, 1, 0, 2]]  
     
 def init_grid_end():
+    
 
     return [[2, 1, 0, 2, 1],
             [1, 0, 0, 1, 0],
@@ -184,6 +199,12 @@ def init_grid_end():
             [0, 1, 0, 0, 2],
             [2, 0, 2, 1, 2]]
             
+def set_score(score_j1, score_j2, val_j1, val_j2):
+    score_j1.set(val_j1)
+    score_j2.set(val_j2)
+    lbl_j1.config(text="Joueur 1 : " + str(score_j1.get()) + " pions bloqués")
+    lbl_j2.config(text="Joueur 2 : " + str(score_j2.get()) + " pions bloqués")
+
 # Affichage de game (colonne de gauche de l'interface).
 # Cette fonction fait appel à la fonction draw_grid(...) pour afficher 
 # la grille.
@@ -191,7 +212,7 @@ def show_game(game, lbl_j2, grid_canvas, lbl_j1, grid):
     # Affichage de la colone game aligné en haut de l'interface
     game.pack(side=TOP)
 
-    lbl_j2.config(text="Joueur 2")
+    lbl_j2.config(text="Joueur 2 : " + str(score_j2.get()) + " pions bloqués")
     lbl_j2.pack(side=LEFT)
     game.add(lbl_j2, sticky="nw")
 
@@ -199,7 +220,7 @@ def show_game(game, lbl_j2, grid_canvas, lbl_j1, grid):
     draw_tokens(grid_canvas, grid)
     game.add(grid_canvas)
 
-    lbl_j1.config(text="Joueur 1")
+    lbl_j1.config(text="Joueur 1 : " + str(score_j1.get()) + " pions bloqués")
     lbl_j1.pack(side=LEFT)
     game.add(lbl_j1, sticky="nw")
 
@@ -209,14 +230,18 @@ def show_menu(menu, btn_start, btn_middle, btn_end):
     # Affichage de la colone menu aligné en haut de l'interface
     menu.pack(side=TOP)
 
-    menu.add(Label(text="Choisissez une configuration :"), sticky="nw")
+    menu.add(Label(text="Choisissez une configuration :", 
+            bg="#242424",
+            fg="#DADADA"), sticky="nw")
     menu.add(btn_start, width=135, sticky="nw")
     menu.add(btn_middle, width=135, sticky="nw")
     menu.add(btn_end, width=135, sticky="nw")
     menu.add(Label(text="\n" + 
             "Teste si une case est dans la grille, \n" +
-            "Format autorisé (x, y) [ex: (0, 4)] :"
-            , justify=LEFT), sticky="nw")
+            "Format autorisé (x, y) [ex: (0, 4)] :",
+            justify=LEFT, 
+            bg="#242424",
+            fg="#DADADA"), sticky="nw")
     menu.add(fld_position, sticky="nw")
     fld_position.focus()
     menu.add(btn_send, sticky="nw")
@@ -257,20 +282,32 @@ def est_dans_grille(position):
 # Elles sont déclenché par un evenement.
 # Ici, l'evenement en question sera le clic sur un bouton.
 
-def event_change_config_to_begin(grid, grid_canvas):
+def event_change_config_to_begin(grid, grid_canvas, 
+        score_j1, score_j2,
+        lbl_j1, lbl_j2):
+
     grid = init_grid_start()
+    set_score(score_j1, score_j2, 0, 0)
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
     interface.pack()
 
-def event_change_config_to_middle(grid, grid_canvas):
+def event_change_config_to_middle(grid, grid_canvas, 
+        score_j1, score_j2,
+        lbl_j1, lbl_j2):
+
     grid = init_grid_middle()
+    set_score(score_j1, score_j2, 5, 3)
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
     interface.pack()
 
-def event_change_config_to_end(grid, grid_canvas):
+def event_change_config_to_end(grid, grid_canvas, 
+        score_j1, score_j2,
+        lbl_j1, lbl_j2):
+
     grid = init_grid_end()
+    set_score(score_j1, score_j2, 5, 2)
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
     interface.pack()
@@ -289,10 +326,20 @@ interface.add(show_menu(menu, btn_start, btn_middle, btn_end))
 interface.pack()
 
 # Ajout des évenements aux boutons.
-btn_start.config(command=lambda : event_change_config_to_begin(grid, grid_canvas))
-btn_middle.config(command=lambda : event_change_config_to_middle(grid, grid_canvas))
-btn_end.config(command=lambda : event_change_config_to_end(grid, grid_canvas))
-btn_send.config(command=lambda : event_test_est_dans_grille(fld_position.get()))
+btn_start.config(command=lambda : 
+        event_change_config_to_begin(grid, grid_canvas, 
+        score_j1, score_j2,
+        lbl_j1, lbl_j2))
+btn_middle.config(command=lambda : 
+        event_change_config_to_middle(grid, grid_canvas, 
+        score_j1, score_j2,
+        lbl_j1, lbl_j2))
+btn_end.config(command=lambda : 
+        event_change_config_to_end(grid, grid_canvas, 
+        score_j1, score_j2,
+        lbl_j1, lbl_j2))
+btn_send.config(command=lambda : 
+        event_test_est_dans_grille(fld_position.get()))
 
 # Renommage de la fenetre
 window.title("Entropie")
