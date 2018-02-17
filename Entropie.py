@@ -64,16 +64,12 @@ game = PanedWindow(interface,
         orient=VERTICAL)
 menu = PanedWindow(interface, 
         orient=VERTICAL)
-# Les 2 frames suivantes contiendront plus tard des informations sur les
-# 2 joueurs et leurs score (pions bloqués par exemple)
-j2_infos = PanedWindow(game,
-        orient=HORIZONTAL)
-j1_infos = PanedWindow(game,
-        orient=HORIZONTAL)
+lbl_j2 = Label(game)
+lbl_j1 = Label(game)
 grid_canvas = (Canvas(game, 
-                    width=NB_COLS*SCALE, 
-                    height=NB_ROWS*SCALE, 
-                    highlightthickness=0))
+        width=NB_COLS*SCALE, 
+        height=NB_ROWS*SCALE, 
+        highlightthickness=0))
 
 # Objets interactifs (boutons / champs de saisies / etc...)
 btn_start = Button(menu, 
@@ -106,7 +102,7 @@ fld_position = Entry(menu,
 [-------game-------] [----menu-----]
 
 |===================|==============|
-| j2_infos          |              |
+| lbl_j2            |              |
 |___________________| btn_start    |
 |                   | btn_middle   |
 |                   | btn_end      |
@@ -114,7 +110,7 @@ fld_position = Entry(menu,
 |                   |              |
 |                   | fld_position |
 |___________________| btn_send     |
-| j1_infos          |              |
+| lbl_j1            |              |
 |___________________|______________|             
 """
 
@@ -191,21 +187,21 @@ def init_grid_end():
 # Affichage de game (colonne de gauche de l'interface).
 # Cette fonction fait appel à la fonction draw_grid(...) pour afficher 
 # la grille.
-def show_game(game, j2_infos, grid_canvas, j1_infos, grid):
+def show_game(game, lbl_j2, grid_canvas, lbl_j1, grid):
     # Affichage de la colone game aligné en haut de l'interface
     game.pack(side=TOP)
 
-    player2_name = Label(j2_infos, text="Joueur 2")
-    player2_name.pack(side=LEFT)
-    game.add(j2_infos, sticky="nw")
+    lbl_j2.config(text="Joueur 2")
+    lbl_j2.pack(side=LEFT)
+    game.add(lbl_j2, sticky="nw")
 
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
     game.add(grid_canvas)
 
-    player1_name = Label(j1_infos, text="Joueur 1")
-    player1_name.pack(side=LEFT)
-    game.add(j1_infos, sticky="nw")
+    lbl_j1.config(text="Joueur 1")
+    lbl_j1.pack(side=LEFT)
+    game.add(lbl_j1, sticky="nw")
 
     return game
 
@@ -227,10 +223,9 @@ def show_menu(menu, btn_start, btn_middle, btn_end):
 
     return menu
 
-# Fonction est_dans_grille, mais comme depuis le début, j'avais écris mes 
-# fonctions en anglais, celle là n'échappe pas à la règle...
-# Non mais en vrai, ça aurait fait tâche dans le code.
-def in_grid(position):
+# Fonction est_dans_grille, en francais car c'est une fonction qui était
+# demandé donc comme je voulait pas frustrer qui que ce soit. 😇
+def est_dans_grille(position):
     assert position != '', "ERREUR_CHAMP_DE_SAISIE_VIDE : " \
             + "Le champ de saisie est vide. " \
             + "Vous devez le remplir avec des coordonnées, au format indiqué"
@@ -280,8 +275,8 @@ def event_change_config_to_end(grid, grid_canvas):
     draw_tokens(grid_canvas, grid)
     interface.pack()
 
-def event_test_in_grid(position):
-    in_grid(position)
+def event_test_est_dans_grille(position):
+    est_dans_grille(position)
 
 #=========================
 # MAIN
@@ -289,7 +284,7 @@ def event_test_in_grid(position):
 # Initialisation et affichage de la grille
 # et de l'interface.
 grid = init_grid_start()
-interface.add(show_game(game, j2_infos, grid_canvas, j1_infos, grid))
+interface.add(show_game(game, lbl_j2, grid_canvas, lbl_j1, grid))
 interface.add(show_menu(menu, btn_start, btn_middle, btn_end))
 interface.pack()
 
@@ -297,7 +292,7 @@ interface.pack()
 btn_start.config(command=lambda : event_change_config_to_begin(grid, grid_canvas))
 btn_middle.config(command=lambda : event_change_config_to_middle(grid, grid_canvas))
 btn_end.config(command=lambda : event_change_config_to_end(grid, grid_canvas))
-btn_send.config(command=lambda : event_test_in_grid(fld_position.get()))
+btn_send.config(command=lambda : event_test_est_dans_grille(fld_position.get()))
 
 # Renommage de la fenetre
 window.title("Entropie")
