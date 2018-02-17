@@ -231,12 +231,12 @@ def show_menu(menu, btn_start, btn_middle, btn_end):
 # fonctions en anglais, celle là n'échappe pas à la règle...
 # Non mais en vrai, ça aurait fait tâche dans le code.
 def in_grid(position):
-    assert position.get() != '', "ERREUR_CHAMP_DE_SAISIE_VIDE : " \
+    assert position != '', "ERREUR_CHAMP_DE_SAISIE_VIDE : " \
             + "Le champ de saisie est vide. " \
             + "Vous devez le remplir avec des coordonnées, au format indiqué"
 
     try:
-        position = eval(position.get())
+        position = eval(position)
     except:
         raise AssertionError("ERREUR_FORMAT : " \
                 + "Vous devez entrer les coordonées au format (x, y). " \
@@ -259,29 +259,29 @@ def in_grid(position):
 # EVENEMENTS
 
 # Ces fonctions sont un peu spéciales.
-# Elles ne prennent pas de paramètres et ont pour but de gérer un évenement
-# Ici, c'est l'évenement du clic sur les boutons qui est en jeu.
+# Elles sont déclenché par un evenement.
+# Ici, l'evenement en question sera le clic sur un bouton.
 
-def event_change_config_to_begin():
+def event_change_config_to_begin(grid, grid_canvas):
     grid = init_grid_start()
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
     interface.pack()
 
-def event_change_config_to_middle():
+def event_change_config_to_middle(grid, grid_canvas):
     grid = init_grid_middle()
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
     interface.pack()
 
-def event_change_config_to_end():
+def event_change_config_to_end(grid, grid_canvas):
     grid = init_grid_end()
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
     interface.pack()
 
-def event_test_in_grid():
-    in_grid(fld_position)
+def event_test_in_grid(position):
+    in_grid(position)
 
 #=========================
 # MAIN
@@ -294,10 +294,10 @@ interface.add(show_menu(menu, btn_start, btn_middle, btn_end))
 interface.pack()
 
 # Ajout des évenements aux boutons.
-btn_start.config(command=event_change_config_to_begin)
-btn_middle.config(command=event_change_config_to_middle)
-btn_end.config(command=event_change_config_to_end)
-btn_send.config(command=event_test_in_grid)
+btn_start.config(command=lambda : event_change_config_to_begin(grid, grid_canvas))
+btn_middle.config(command=lambda : event_change_config_to_middle(grid, grid_canvas))
+btn_end.config(command=lambda : event_change_config_to_end(grid, grid_canvas))
+btn_send.config(command=lambda : event_test_in_grid(fld_position.get()))
 
 # Renommage de la fenetre
 window.title("Entropie")
