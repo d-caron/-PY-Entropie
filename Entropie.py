@@ -199,11 +199,39 @@ def init_grid_end():
             [0, 1, 0, 0, 2],
             [2, 0, 2, 1, 2]]
             
-def set_score(score_j1, score_j2, val_j1, val_j2):
-    score_j1.set(val_j1)
-    score_j2.set(val_j2)
+def set_score(lbl_j1, lbl_j2, score_j1, score_j2):
     lbl_j1.config(text="Joueur 1 : " + str(score_j1.get()) + " pions bloqués")
     lbl_j2.config(text="Joueur 2 : " + str(score_j2.get()) + " pions bloqués")
+
+def test_etat(grid, x, y):
+    allies = False
+    enemies = False
+    for row in range(x-1, x+2):
+        for col in range(y-1, y+2):
+            if est_dans_grille(str((row, col))) and (x, y) != (row, col):
+                if grid[row][col] == grid[x][y]:
+                    allies = True
+                elif grid[row][col] + grid[x][y] == 3:
+                    enemies = True
+    
+    if not allies and not enemies:
+        return "isolated"
+    elif not allies and enemies:
+        return "blocked"
+    else:
+        return None
+
+def calc_score(grid, score_j1, score_j2):
+    score_j1.set(0)
+    score_j2.set(0)
+    for row in range(NB_ROWS):
+        for col in range(NB_COLS):
+            if grid[row][col] != 0 and test_etat(grid, row, col) == "blocked":
+                if grid[row][col] == 1:
+                    score_j2.set(score_j2.get() + 1)
+                elif grid[row][col] == 2:
+                    score_j1.set(score_j1.get() + 1)
+
 
 # Affichage de game (colonne de gauche de l'interface).
 # Cette fonction fait appel à la fonction draw_grid(...) pour afficher 
@@ -238,7 +266,8 @@ def show_menu(menu, btn_start, btn_middle, btn_end):
     menu.add(btn_end, width=135, sticky="nw")
     menu.add(Label(text="\n" + 
             "Teste si une case est dans la grille, \n" +
-            "Format autorisé (x, y) [ex: (0, 4)] :",
+            "Format autorisé (x, y). ex: (0, 4) \n" +
+            "(Resultat et erreur d'assertions dans la console)",
             justify=LEFT, 
             bg="#242424",
             fg="#DADADA"), sticky="nw")
@@ -269,10 +298,12 @@ def est_dans_grille(position):
     assert type(position[0])==int and type(position[1])==int, "ERREUR_TYPE :" \
             + "x et y doivent etre des des entiers."
 
-    assert 0<=position[0]<5 and 0<=position[1]<5, "ERREUR_COORDONEES :" \
-            + "Les coordonées ne font pas partie de la grille."
-            
-    print("la case fait bien partie de la grille")
+    if 0<=position[0]<5 and 0<=position[1]<5:
+        print("la case fait bien partie de la grille")
+        return True
+    else:
+        print("la case ne fait pas partie de la grille")
+        return False
 
 
 #=========================
@@ -287,7 +318,8 @@ def event_change_config_to_begin(grid, grid_canvas,
         lbl_j1, lbl_j2):
 
     grid = init_grid_start()
-    set_score(score_j1, score_j2, 0, 0)
+    calc_score(grid, score_j1, score_j2)
+    set_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
     interface.pack()
@@ -297,7 +329,8 @@ def event_change_config_to_middle(grid, grid_canvas,
         lbl_j1, lbl_j2):
 
     grid = init_grid_middle()
-    set_score(score_j1, score_j2, 5, 3)
+    calc_score(grid, score_j1, score_j2)
+    set_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
     interface.pack()
@@ -307,7 +340,8 @@ def event_change_config_to_end(grid, grid_canvas,
         lbl_j1, lbl_j2):
 
     grid = init_grid_end()
-    set_score(score_j1, score_j2, 5, 2)
+    calc_score(grid, score_j1, score_j2)
+    set_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
     interface.pack()
@@ -340,6 +374,8 @@ btn_end.config(command=lambda :
         lbl_j1, lbl_j2))
 btn_send.config(command=lambda : 
         event_test_est_dans_grille(fld_position.get()))
+
+
 
 # Renommage de la fenetre
 window.title("Entropie")
