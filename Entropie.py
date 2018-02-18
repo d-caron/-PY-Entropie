@@ -131,8 +131,16 @@ fld_position = Entry(menu,
 #=========================
 # FONCTIONS
 
-# Dessine la grille
 def draw_grid(canvas, grid):
+    """
+    ø parametres :
+        -> canvas : tkinter.Canvas()
+        -> grid : list
+    ø retour :
+        -> None
+    **  Dessine la grille, precedement initialisee dans grid, 
+        sur le canvas
+    """
     for row in range(NB_ROWS):
         for col in range(NB_COLS):
             # Variables de position (x1, y1) et (x2, y2) pour les rectangles
@@ -152,9 +160,18 @@ def draw_grid(canvas, grid):
             else:
                 canvas.create_rectangle(x1, y1, x2, y2, 
                         fill="#848484")
+# end def
 
-# Dessine les pions sur la grille
 def draw_tokens(canvas, grid):
+    """
+    ø parametres :
+        -> canvas : tkinter.Canvas()
+        -> grid : list
+    ø retour :
+        -> None
+    **  Dessine les pions, precedement initialisee dans grid, 
+        dans le canvas
+    """
     for row in range(NB_ROWS):
         for col in range(NB_COLS):
             # Variables de position (x1, y1) et (x2, y2) pour les rectangles
@@ -170,40 +187,81 @@ def draw_tokens(canvas, grid):
             # Création des ronds représentant les pions roses.
             elif grid[row][col]==2:
                 canvas.create_oval(x1, x2, y1, y2, fill=CYAN)
+# end def
 
-# Initialise une liste de listes représentant les pions 
-# [couleur, coordonée_x, coordonée_y]
 def init_grid_start():
-   
-
+    """
+    ø parametres :
+        -> None
+    ø retour :
+        -> list
+    **  Retourne une grille en configuration "debut de partie"
+    """
     return [[1, 1, 1, 1, 1],
             [1, 0, 0, 0, 1],
             [0, 0, 0, 0, 0],
             [2, 0, 0, 0, 2],
             [2, 2, 2, 2, 2]]
-                
-def init_grid_middle():
+# end def                
 
+def init_grid_middle():
+    """
+    ø parametres :
+        -> None
+    ø retour :
+        -> list
+    **  Retourne une grille en configuration "millieu de partie"
+    """
     return [[1, 2, 1, 2, 1],
             [1, 0, 0, 0, 0],
             [0, 0, 0, 0, 2],
             [2, 1, 2, 0, 1],
             [2, 0, 1, 0, 2]]  
-    
-def init_grid_end():
-    
+# end def 
 
+def init_grid_end():
+    """
+    ø parametres :
+        -> None
+    ø retour :
+        -> list
+    **  Retourne une grille en configuration "fin de partie"
+    """
     return [[2, 1, 0, 2, 1],
             [1, 0, 0, 1, 0],
             [2, 0, 0, 0, 1],
             [0, 1, 0, 0, 2],
             [2, 0, 2, 1, 2]]
+# end def
             
 def set_score(lbl_j1, lbl_j2, score_j1, score_j2):
+    """
+    ø parametres :
+        -> lbl_j1 : tkinter.Label()
+        -> lbl_j2 : tkinterLabel()
+        -> score_j1 : tkinter.IntVar()
+        -> score_j2 : tkinter.IntVar()
+    ø retour :
+        -> None
+    **  Modifie les labels correspondant aux 2 joueurs pour
+        corespondre a leurs scores actuel
+    """
     lbl_j1.config(text="Joueur 1 : " + str(score_j1.get()) + " pions bloqués")
     lbl_j2.config(text="Joueur 2 : " + str(score_j2.get()) + " pions bloqués")
+# end def
 
 def test_etat(grid, x, y):
+    """
+    ø parametres :
+        -> grid : list
+        -> x : int
+        -> y : int
+    ø retour :
+        -> str
+    **  teste l'etat d'un pion (x, y) dans la grille en checkant autour
+        de lui. Retourne son etat bloque ou isole ou juste None s'il
+        n'est ni l'un ni l'autre.
+    """
     allies = False
     enemies = False
     for row in range(x-1, x+2):
@@ -220,8 +278,19 @@ def test_etat(grid, x, y):
         return "blocked"
     else:
         return None
+# end def
 
 def calc_score(grid, score_j1, score_j2):
+    """
+    ø parametres :
+        -> grid : list
+        -> score_j1 : tkinter.IntVar()
+        -> score_j1 : tkinter.IntVar()
+    ø retour :
+        -> None
+    **  Calcule le score de chaques joueurs en fonction du nombre de ses
+        pions bloques
+    """
     score_j1.set(0)
     score_j2.set(0)
     for row in range(NB_ROWS):
@@ -231,13 +300,21 @@ def calc_score(grid, score_j1, score_j2):
                     score_j2.set(score_j2.get() + 1)
                 elif grid[row][col] == 2:
                     score_j1.set(score_j1.get() + 1)
+# end def
 
-
-# Affichage de game (colonne de gauche de l'interface).
-# Cette fonction fait appel à la fonction draw_grid(...) pour afficher 
-# la grille.
 def show_game(game, lbl_j2, grid_canvas, lbl_j1, grid):
-    # Affichage de la colone game aligné en haut de l'interface
+    """
+    ø parametres :
+        -> game : tkinter.PanedWindow()
+        -> lbl_j2 : tkinter.Label()
+        -> grid_canvas : tkinter.Canvas()
+        -> lbl_j1 : tkinter.Label()
+        -> grid : list
+    ø retour :
+        -> tkinter.PanedWindow()
+    **  Ajout de toute la colone gauche de l'IHM a l'interface 
+        (scores et grille)
+    """
     game.pack(side=TOP)
 
     lbl_j2.config(text="Joueur 2 : " + str(score_j2.get()) + " pions bloqués")
@@ -253,9 +330,20 @@ def show_game(game, lbl_j2, grid_canvas, lbl_j1, grid):
     game.add(lbl_j1, sticky="nw")
 
     return game
+# end def
 
 def show_menu(menu, btn_start, btn_middle, btn_end):
-    # Affichage de la colone menu aligné en haut de l'interface
+    """
+    ø parametres :
+        -> menu : tkinter.PanedWindow()
+        -> btn_start : tkinter.Button()
+        -> btn_middle : tkinter.Button()
+        -> btn_end : tkinter.Button()
+    ø retour :
+        -> tkinter.PanedWindow()
+    **  Ajout de toute la colone droite de l'IHM a l'interface 
+        (boutons et zone de test de la fonction est_dans_grille)
+    """
     menu.pack(side=TOP)
 
     menu.add(Label(text="Choisissez une configuration :", 
@@ -266,7 +354,7 @@ def show_menu(menu, btn_start, btn_middle, btn_end):
     menu.add(btn_end, width=135, sticky="nw")
     menu.add(Label(text="\n" + 
             "Teste si une case est dans la grille, \n" +
-            "Format autorisé (x, y). ex: (0, 4) \n" +
+            "Format autorise (x, y). ex: (0, 4) \n" +
             "(Resultat et erreur d'assertions dans la console)",
             justify=LEFT, 
             bg="#242424",
@@ -276,10 +364,20 @@ def show_menu(menu, btn_start, btn_middle, btn_end):
     menu.add(btn_send, sticky="nw")
 
     return menu
+# end def
 
-# Fonction est_dans_grille, en francais car c'est une fonction qui était
-# demandé donc comme je voulait pas frustrer qui que ce soit. 😇
+# Fonction est_dans_grille, en francais 
+# car c'est une fonction qui était demandé 😇
 def est_dans_grille(position):
+    """
+    ø parametres :
+        -> position : str
+    ø retour :
+        -> bool
+    **  Verifie le format de la position passe en parametre
+        puis verifie que la position pointe bien vers une case de la
+        grille.
+    """
     assert position != '', "ERREUR_CHAMP_DE_SAISIE_VIDE : " \
             + "Le champ de saisie est vide. " \
             + "Vous devez le remplir avec des coordonnées, au format indiqué"
@@ -304,50 +402,98 @@ def est_dans_grille(position):
     else:
         print("la case ne fait pas partie de la grille")
         return False
-
+# end def
 
 #=========================
 # EVENEMENTS
 
 # Ces fonctions sont un peu spéciales.
 # Elles sont déclenché par un evenement.
-# Ici, l'evenement en question sera le clic sur un bouton.
+# Par exemple, le clic sur un bouton.
 
 def event_change_config_to_begin(grid, grid_canvas, 
         score_j1, score_j2,
         lbl_j1, lbl_j2):
-
+    """
+    ø parametres :
+        -> grid : list
+        -> grid_canvas : tkinter.Canvas()
+        -> score_j1 : tkinter.IntVar()
+        -> score_j2 : tkinter.IntVar()
+        -> lbl_j1 : tkinter.Label()
+        -> lbl_j2 : tkinter.Label()
+    ø retour :
+        -> None
+    **  Change la configuration de la grille vers la config
+        "debut de partie", et met a jour le score en fonction.
+    """
     grid = init_grid_start()
     calc_score(grid, score_j1, score_j2)
     set_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
     interface.pack()
+# end def
 
 def event_change_config_to_middle(grid, grid_canvas, 
         score_j1, score_j2,
         lbl_j1, lbl_j2):
-
+    """
+    ø parametres :
+        -> grid : list
+        -> grid_canvas : tkinter.Canvas()
+        -> score_j1 : tkinter.IntVar()
+        -> score_j2 : tkinter.IntVar()
+        -> lbl_j1 : tkinter.Label()
+        -> lbl_j2 : tkinter.Label()
+    ø retour :
+        -> None
+    **  Change la configuration de la grille vers la config
+        "millieu de partie", et met a jour le score en fonction.
+    """
     grid = init_grid_middle()
     calc_score(grid, score_j1, score_j2)
     set_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
     interface.pack()
+# end def
 
 def event_change_config_to_end(grid, grid_canvas, 
         score_j1, score_j2,
         lbl_j1, lbl_j2):
-
+    """
+    ø parametres :
+        -> grid : list
+        -> grid_canvas : tkinter.Canvas()
+        -> score_j1 : tkinter.IntVar()
+        -> score_j2 : tkinter.IntVar()
+        -> lbl_j1 : tkinter.Label()
+        -> lbl_j2 : tkinter.Label()
+    ø retour :
+        -> None
+    **  Change la configuration de la grille vers la config
+        "fin de partie", et met a jour le score en fonction.
+    """
     grid = init_grid_end()
     calc_score(grid, score_j1, score_j2)
     set_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
     interface.pack()
+# end def
 
 def event_test_est_dans_grille(position):
+    """
+    ø parametres :
+        -> position : str
+    ø retour :
+        -> None
+    **  Apelle la fonction est dans grille avec la position donne en 
+        parametre.
+    """
     est_dans_grille(position)
+# end def
 
 #=========================
 # MAIN
@@ -375,10 +521,13 @@ btn_end.config(command=lambda :
 btn_send.config(command=lambda : 
         event_test_est_dans_grille(fld_position.get()))
 
-
+# Ajout de l'evenement lors de la pression sur la touche entree
+fld_position.bind("<Return>", 
+        lambda e : event_test_est_dans_grille(fld_position.get()))
 
 # Renommage de la fenetre
 window.title("Entropie")
+# fix de la taille de la fenetre
 window.resizable(False, False)
 # Affichage de la fenetre
 window.mainloop()
