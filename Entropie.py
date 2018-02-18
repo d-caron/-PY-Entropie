@@ -83,17 +83,17 @@ score_j2 = IntVar(game, value=0)
 btn_start = Button(menu, 
         text="DEBUT DE PARTIE", 
         bg="#848484",
-        width=12,
+        width=14,
         highlightbackground="#424242")
 btn_middle = Button(menu, 
         text="MI-PARTIE", 
         bg="#848484",
-        width=12,
+        width=14,
         highlightbackground="#424242")
 btn_end = Button(menu, 
         text="FIN DE PARTIE", 
         bg="#848484",
-        width=12,
+        width=14,
         highlightbackground="#424242")
 btn_send = Button(menu,
         text="TESTER", 
@@ -397,10 +397,8 @@ def est_dans_grille(position):
             + "x et y doivent etre des des entiers."
 
     if 0<=position[0]<5 and 0<=position[1]<5:
-        print("la case fait bien partie de la grille")
         return True
     else:
-        print("la case ne fait pas partie de la grille")
         return False
 # end def
 
@@ -488,11 +486,11 @@ def event_test_est_dans_grille(position):
     ø parametres :
         -> position : str
     ø retour :
-        -> None
+        -> bool
     **  Apelle la fonction est dans grille avec la position donne en 
         parametre.
     """
-    est_dans_grille(position)
+    return est_dans_grille(position)
 # end def
 
 #=========================
@@ -519,11 +517,11 @@ btn_end.config(command=lambda :
         score_j1, score_j2,
         lbl_j1, lbl_j2))
 btn_send.config(command=lambda : 
-        event_test_est_dans_grille(fld_position.get()))
+        print(event_test_est_dans_grille(fld_position.get())))
 
 # Ajout de l'evenement lors de la pression sur la touche entree
 fld_position.bind("<Return>", 
-        lambda e : event_test_est_dans_grille(fld_position.get()))
+        lambda e : print(event_test_est_dans_grille(fld_position.get())))
 
 # Renommage de la fenetre
 window.title("Entropie")
