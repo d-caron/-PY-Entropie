@@ -58,14 +58,11 @@ tokens = []
 
 # Variables graphiques
 window = Tk()
-interface = PanedWindow(window, 
-        orient=HORIZONTAL,
+interface = Frame(window,
         bg="#242424")
-game = PanedWindow(interface, 
-        orient=VERTICAL,
+game = Frame(interface,
         bg="#242424")
-menu = PanedWindow(interface, 
-        orient=VERTICAL,
+menu = Frame(interface,
         bg="#242424")
 lbl_j2 = Label(game,
         bg="#242424",
@@ -86,14 +83,17 @@ score_j2 = IntVar(game, value=0)
 btn_start = Button(menu, 
         text="DEBUT DE PARTIE", 
         bg="#848484",
+        width=12,
         highlightbackground="#424242")
 btn_middle = Button(menu, 
         text="MI-PARTIE", 
         bg="#848484",
+        width=12,
         highlightbackground="#424242")
 btn_end = Button(menu, 
         text="FIN DE PARTIE", 
         bg="#848484",
+        width=12,
         highlightbackground="#424242")
 btn_send = Button(menu,
         text="TESTER", 
@@ -305,65 +305,65 @@ def calc_score(grid, score_j1, score_j2):
 def show_game(game, lbl_j2, grid_canvas, lbl_j1, grid):
     """
     ø parametres :
-        -> game : tkinter.PanedWindow()
+        -> game : tkinter.Frame()
         -> lbl_j2 : tkinter.Label()
         -> grid_canvas : tkinter.Canvas()
         -> lbl_j1 : tkinter.Label()
         -> grid : list
     ø retour :
-        -> tkinter.PanedWindow()
-    **  Ajout de toute la colone gauche de l'IHM a l'interface 
+        -> None
+    **  Affichage de toute la colone gauche de l'interface
         (scores et grille)
     """
-    game.pack(side=TOP)
+    game.pack(side=LEFT, anchor="nw")
 
     lbl_j2.config(text="Joueur 2 : " + str(score_j2.get()) + " pions bloqués")
-    lbl_j2.pack(side=LEFT)
-    game.add(lbl_j2, sticky="nw")
+    lbl_j2.pack(anchor="w")
 
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
-    game.add(grid_canvas)
+    grid_canvas.pack(anchor="w")
 
     lbl_j1.config(text="Joueur 1 : " + str(score_j1.get()) + " pions bloqués")
-    lbl_j1.pack(side=LEFT)
-    game.add(lbl_j1, sticky="nw")
-
-    return game
+    lbl_j1.pack(anchor="w")
 # end def
 
 def show_menu(menu, btn_start, btn_middle, btn_end):
     """
     ø parametres :
-        -> menu : tkinter.PanedWindow()
+        -> menu : tkinter.Frame()
         -> btn_start : tkinter.Button()
         -> btn_middle : tkinter.Button()
         -> btn_end : tkinter.Button()
     ø retour :
-        -> tkinter.PanedWindow()
-    **  Ajout de toute la colone droite de l'IHM a l'interface 
+        -> None
+    **  Affichage de toute la colone droite de l'interface 
         (boutons et zone de test de la fonction est_dans_grille)
     """
-    menu.pack(side=TOP)
+    menu.pack(side=LEFT, anchor="nw", padx=5)
 
-    menu.add(Label(text="Choisissez une configuration :", 
+    Label(menu, 
+            text="Choisissez une configuration :", 
             bg="#242424",
-            fg="#DADADA"), sticky="nw")
-    menu.add(btn_start, width=135, sticky="nw")
-    menu.add(btn_middle, width=135, sticky="nw")
-    menu.add(btn_end, width=135, sticky="nw")
-    menu.add(Label(text="\n" + 
+            fg="#DADADA").pack(anchor="w")
+
+    btn_start.pack(anchor="w", pady=1)
+    btn_middle.pack(anchor="w", pady=1)
+    btn_end.pack(anchor="w", pady=1)
+
+    Label(menu, 
+            text="\n" + 
             "Teste si une case est dans la grille, \n" +
             "Format autorise (x, y). ex: (0, 4) \n" +
             "(Resultat et erreur d'assertions dans la console)",
             justify=LEFT, 
             bg="#242424",
-            fg="#DADADA"), sticky="nw")
-    menu.add(fld_position, sticky="nw")
+            fg="#DADADA").pack(anchor="w")
+    
     fld_position.focus()
-    menu.add(btn_send, sticky="nw")
+    fld_position.pack(anchor="w", pady=2)
 
-    return menu
+    btn_send.pack(anchor="w", pady=2)
 # end def
 
 # Fonction est_dans_grille, en francais 
@@ -501,8 +501,8 @@ def event_test_est_dans_grille(position):
 # Initialisation et affichage de la grille
 # et de l'interface.
 grid = init_grid_start()
-interface.add(show_game(game, lbl_j2, grid_canvas, lbl_j1, grid))
-interface.add(show_menu(menu, btn_start, btn_middle, btn_end))
+show_game(game, lbl_j2, grid_canvas, lbl_j1, grid)
+show_menu(menu, btn_start, btn_middle, btn_end)
 interface.pack()
 
 # Ajout des évenements aux boutons.
