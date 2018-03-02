@@ -57,6 +57,9 @@ PINK = "#ff1493"    # Couleur pions j1
 CYAN = "#00ffff"    # Couleur pions j2
 # Taille des pions
 TOKEN_MARGIN = 10
+# Message de changement de tour
+P1_TURN = "Joueur 1, à toi de jouer !"
+P2_TURN = "Joueur 2, c'est à vous !"
 
 
 #=========================
@@ -376,8 +379,9 @@ def show_menu(menu, btn_start, btn_middle, btn_end):
     btn_send.pack(anchor="w", pady=2)
 # end def
 
-# Fonction est_dans_grille, en francais 
-# car c'est une fonction qui était demandé 😇
+# Les fonctions suivantes seront en francais,
+# car c'était des fonctions qui étaient demandées 😇
+
 def est_dans_grille(position):
     """
     ø parametres :
@@ -534,7 +538,7 @@ fld_position.bind("<Return>",
         lambda e : print(event_test_est_dans_grille(fld_position.get())))
 
 # Renommage de la fenetre
-window.title("Entropie")
+window.title("Entropie - " + P2_TURN)
 # fix de la taille de la fenetre
 window.resizable(False, False)
 # Affichage de la fenetre
