@@ -65,6 +65,8 @@ P2_TURN = "Joueur 2, c'est à vous !"
 #=========================
 # VARIABLES
 
+current_player = 1
+
 # Conteneurs grille & pions
 grid = []
 tokens = []
@@ -118,14 +120,6 @@ btn_end = Button(menu,
         bg="#848484",
         width=14,
         highlightbackground="#424242")
-btn_send = Button(menu,
-        text="TESTER", 
-        bg="#848484",
-        highlightbackground="#424242")
-fld_position = Entry(menu,
-        width=7,
-        bg="#DADADA",
-        fg="#242424")
 
 
 #=========================
@@ -144,8 +138,8 @@ fld_position = Entry(menu,
 |                   | btn_end      |
 | grid_frame        |              |
 |                   |              |
-|                   | fld_position |
-|___________________| btn_send     |
+|                   |              |
+|___________________|              |
 | lbl_j1            |              |
 |___________________|______________|             
 """
@@ -199,17 +193,17 @@ def draw_tokens(canvas, grid):
         for col in range(NB_COLS):
             # Variables de position (x1, y1) et (x2, y2) pour les rectangles
             x1 = col*SCALE + TOKEN_MARGIN
-            x2 = row*SCALE + TOKEN_MARGIN
-            y1 = col*SCALE+SCALE - TOKEN_MARGIN
+            y1 = row*SCALE + TOKEN_MARGIN
+            x2 = col*SCALE+SCALE - TOKEN_MARGIN
             y2 = row*SCALE+SCALE - TOKEN_MARGIN
 
             # Création des ronds représentant les pions roses.
             if grid[row][col]==1:
-                canvas.create_oval(x1, x2, y1, y2, fill=PINK)
+                canvas.create_oval(x1, y1, x2, y2, fill=PINK)
 
             # Création des ronds représentant les pions roses.
             elif grid[row][col]==2:
-                canvas.create_oval(x1, x2, y1, y2, fill=CYAN)
+                canvas.create_oval(x1, y1, x2, y2, fill=CYAN)
 # end def
 
 def init_grid_start():
@@ -361,7 +355,7 @@ def show_menu(menu, btn_start, btn_middle, btn_end):
     ø retour :
         -> None
     **  Affichage de toute la colone droite de l'interface 
-        (boutons et zone de test de la fonction est_dans_grille)
+        (le menu à droite)
     """
     menu.pack(side=LEFT, anchor="nw", padx=5)
 
@@ -373,20 +367,6 @@ def show_menu(menu, btn_start, btn_middle, btn_end):
     btn_start.pack(anchor="w", pady=1)
     btn_middle.pack(anchor="w", pady=1)
     btn_end.pack(anchor="w", pady=1)
-
-    Label(menu, 
-            text="\n" + 
-            "Teste si une case est dans la grille, \n" +
-            "Format autorise (x, y). ex: (0, 4) \n" +
-            "(Resultat et erreur d'assertions dans la console)",
-            justify=LEFT, 
-            bg="#242424",
-            fg="#DADADA").pack(anchor="w")
-    
-    fld_position.focus()
-    fld_position.pack(anchor="w", pady=2)
-
-    btn_send.pack(anchor="w", pady=2)
 # end def
 
 def move_token(event, move_prop, grid):
@@ -403,9 +383,20 @@ def move_token(event, move_prop, grid):
     """
     if not move_prop[0]:
         if grid[event.y//SCALE][event.x//SCALE] != 0:
-            move_prop[1] = event.x//SCALE
-            move_prop[2] = event.y//SCALE
-            move_prop[0] = True
+            if test_state(grid, event.y//SCALE, event.x//SCALE) == None:
+                move_prop[1] = event.x//SCALE
+                move_prop[2] = event.y//SCALE
+                move_prop[0] = True
+                event.widget.create_rectangle(
+                        event.x//SCALE*SCALE,
+                        event.y//SCALE*SCALE,
+                        event.x//SCALE*SCALE+SCALE,
+                        event.y//SCALE*SCALE+SCALE, 
+                        outline="#7FFF00",
+                        width="3")
+            else:
+                print("Ce pion ne peut pas bouger.",
+                        "il est soit isolé, soit bloqué.")
         else:
             print("il n'y a pas de pions ici...")
     elif grid[event.y//SCALE][event.x//SCALE] == 0:
@@ -414,8 +405,8 @@ def move_token(event, move_prop, grid):
         grid[move_prop[2]][move_prop[1]] = 0
     else:
         move_prop[0] = False
-        print("mouvement impossible !")
-
+        print("Il y a deja un pion ici...")
+    
 # end def
 
 # Les fonctions suivantes seront en francais,
@@ -453,6 +444,14 @@ def est_dans_grille(position):
         return True
     else:
         return False
+# end def
+
+def deplacement_voisin():
+    pass
+# end def
+
+def deplacement_isole():
+    pass
 # end def
 
 #=========================
@@ -537,28 +536,17 @@ def event_change_config_to_end(grid, grid_canvas,
     interface.pack()
 # end def
 
-def event_test_est_dans_grille(position):
-    """
-    ø parametres :
-        -> position : str
-    ø retour :
-        -> bool
-    **  Apelle la fonction est dans grille avec la position donne en 
-        parametre.
-    """
-    return est_dans_grille(position)
-# end def
-
 def event_move_token(event, move_prop, 
         grid, grid_canvas,
         score_j1, score_j2,
         lbl_j1, lbl_j2):
     move_token(event, move_prop, grid)
-    calc_score(grid, score_j1, score_j2)
-    set_score(lbl_j1, lbl_j2, score_j1, score_j2)
-    draw_grid(grid_canvas, grid)
-    draw_tokens(grid_canvas, grid)
-    interface.pack()
+    if not move_prop[0]:
+        calc_score(grid, score_j1, score_j2)
+        set_score(lbl_j1, lbl_j2, score_j1, score_j2)
+        draw_grid(grid_canvas, grid)
+        draw_tokens(grid_canvas, grid)
+        interface.pack()
 
 #=========================
 # MAIN
@@ -583,12 +571,6 @@ btn_end.config(command=lambda :
         event_change_config_to_end(grid, grid_canvas, 
         score_j1, score_j2,
         lbl_j1, lbl_j2))
-btn_send.config(command=lambda : 
-        print(event_test_est_dans_grille(fld_position.get())))
-
-# Ajout de l'evenement lors de la pression sur la touche entree
-fld_position.bind("<Return>", 
-        lambda e : print(event_test_est_dans_grille(fld_position.get())))
 
 # Ajout de l'évenement du clic sur la grille
 grid_canvas.bind('<1>', lambda e: event_move_token(e, move_prop, 
