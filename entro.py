@@ -57,15 +57,10 @@ PINK = "#ff1493"    # Couleur pions j1
 CYAN = "#00ffff"    # Couleur pions j2
 # Taille des pions
 TOKEN_MARGIN = 10
-# Message de changement de tour
-P1_TURN = "Joueur 1, à toi de jouer !"
-P2_TURN = "Joueur 2, c'est à vous !"
 
 
 #=========================
 # VARIABLES
-
-current_player = 1
 
 # Conteneurs grille & pions
 grid = []
@@ -89,12 +84,23 @@ game = Frame(interface,
         bg="#242424")
 menu = Frame(interface,
         bg="#242424")
+lbl_config = Label(menu, 
+        text="Choisissez une configuration :", 
+        bg="#242424",
+        fg="#DADADA")
+lbl_j1 = Label(game,
+        bg="#242424",
+        fg=CYAN) 
 lbl_j2 = Label(game,
         bg="#242424",
         fg=PINK)
-lbl_j1 = Label(game,
+lbl_player = Label(menu,
         bg="#242424",
-        fg=CYAN)
+        font=(None, 21))
+lbl_turn = Label(menu, 
+        text="C'est votre tour", 
+        bg="#242424",
+        fg="#DADADA")
 grid_canvas = Canvas(game, 
         width=NB_COLS*SCALE, 
         height=NB_ROWS*SCALE, 
@@ -103,6 +109,9 @@ grid_canvas = Canvas(game,
 # Scores joueurs
 score_j1 = IntVar(game, value=0)
 score_j2 = IntVar(game, value=0)
+
+# Joueur courrant
+current_player = IntVar(menu, value=2)
 
 # Objets interactifs (boutons / champs de saisies / etc...)
 btn_start = Button(menu, 
@@ -198,11 +207,11 @@ def draw_tokens(canvas, grid):
             y2 = row*SCALE+SCALE - TOKEN_MARGIN
 
             # Création des ronds représentant les pions roses.
-            if grid[row][col]==1:
+            if grid[row][col]==2:
                 canvas.create_oval(x1, y1, x2, y2, fill=PINK)
 
             # Création des ronds représentant les pions roses.
-            elif grid[row][col]==2:
+            elif grid[row][col]==1:
                 canvas.create_oval(x1, y1, x2, y2, fill=CYAN)
 # end def
 
@@ -214,11 +223,11 @@ def init_grid_start():
         -> list
     **  Retourne une grille en configuration "debut de partie"
     """
-    return [[1, 1, 1, 1, 1],
-            [1, 0, 0, 0, 1],
-            [0, 0, 0, 0, 0],
+    return [[2, 2, 2, 2, 2],
             [2, 0, 0, 0, 2],
-            [2, 2, 2, 2, 2]]
+            [0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1]]
 # end def                
 
 def init_grid_middle():
@@ -229,11 +238,11 @@ def init_grid_middle():
         -> list
     **  Retourne une grille en configuration "millieu de partie"
     """
-    return [[1, 2, 1, 2, 1],
-            [1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 2],
-            [2, 1, 2, 0, 1],
-            [2, 0, 1, 0, 2]]  
+    return [[2, 1, 2, 1, 2],
+            [2, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1],
+            [1, 2, 1, 0, 2],
+            [1, 0, 2, 0, 1]]  
 # end def 
 
 def init_grid_end():
@@ -244,11 +253,11 @@ def init_grid_end():
         -> list
     **  Retourne une grille en configuration "fin de partie"
     """
-    return [[2, 1, 0, 2, 1],
-            [1, 0, 0, 1, 0],
-            [2, 0, 0, 0, 1],
-            [0, 1, 0, 0, 2],
-            [2, 0, 2, 1, 2]]
+    return [[1, 2, 0, 1, 2],
+            [2, 0, 0, 2, 0],
+            [1, 0, 0, 0, 2],
+            [0, 2, 0, 0, 1],
+            [1, 0, 1, 2, 1]]
 # end def
             
 def set_score(lbl_j1, lbl_j2, score_j1, score_j2):
@@ -359,17 +368,23 @@ def show_menu(menu, btn_start, btn_middle, btn_end):
     """
     menu.pack(side=LEFT, anchor="nw", padx=5)
 
-    Label(menu, 
-            text="Choisissez une configuration :", 
-            bg="#242424",
-            fg="#DADADA").pack(anchor="w")
+    lbl_config.pack(anchor="w")
 
     btn_start.pack(anchor="w", pady=1)
     btn_middle.pack(anchor="w", pady=1)
     btn_end.pack(anchor="w", pady=1)
+
+    if current_player.get() == 1:
+        color = CYAN
+    else:
+        color = PINK
+    lbl_player.config(text="Joueur " + str(current_player.get()),
+            fg=color)
+    lbl_player.pack(anchor="w", pady=1)
+    lbl_turn.pack(anchor="w")
 # end def
 
-def move_token(event, move_prop, grid):
+def move_token(event, move_prop, grid, current_player):
     """
     ø parametres :
         -> event : tkinter.Event()
@@ -382,7 +397,7 @@ def move_token(event, move_prop, grid):
         l'évenement de clic sur la grille (Canvas)
     """
     if not move_prop[0]:
-        if grid[event.y//SCALE][event.x//SCALE] != 0:
+        if grid[event.y//SCALE][event.x//SCALE] == current_player.get():
             if test_state(grid, event.y//SCALE, event.x//SCALE) == None:
                 move_prop[1] = event.x//SCALE
                 move_prop[2] = event.y//SCALE
@@ -398,11 +413,15 @@ def move_token(event, move_prop, grid):
                 print("Ce pion ne peut pas bouger.",
                         "il est soit isolé, soit bloqué.")
         else:
-            print("il n'y a pas de pions ici...")
+            print("ça n'est pas un de vos pions")
     elif grid[event.y//SCALE][event.x//SCALE] == 0:
         move_prop[0] = False
         grid[event.y//SCALE][event.x//SCALE] = grid[move_prop[2]][move_prop[1]]
         grid[move_prop[2]][move_prop[1]] = 0
+        if current_player.get() == 1:
+            current_player.set(value=2)
+        else:
+            current_player.set(value=1)
     else:
         move_prop[0] = False
         print("Il y a deja un pion ici...")
@@ -539,14 +558,18 @@ def event_change_config_to_end(grid, grid_canvas,
 def event_move_token(event, move_prop, 
         grid, grid_canvas,
         score_j1, score_j2,
-        lbl_j1, lbl_j2):
-    move_token(event, move_prop, grid)
+        lbl_j1, lbl_j2,
+        menu, current_player,
+        btn_start, btn_middle, btn_end):
+    move_token(event, move_prop, grid, current_player)
     if not move_prop[0]:
         calc_score(grid, score_j1, score_j2)
         set_score(lbl_j1, lbl_j2, score_j1, score_j2)
         draw_grid(grid_canvas, grid)
         draw_tokens(grid_canvas, grid)
+        show_menu(menu, btn_start, btn_middle, btn_end)
         interface.pack()
+# end def
 
 #=========================
 # MAIN
@@ -556,6 +579,7 @@ def event_move_token(event, move_prop,
 grid = init_grid_start()
 show_game(game, lbl_j2, grid_canvas, lbl_j1, grid)
 show_menu(menu, btn_start, btn_middle, btn_end)
+
 interface.pack()
 
 # Ajout des évenements aux boutons.
@@ -576,10 +600,12 @@ btn_end.config(command=lambda :
 grid_canvas.bind('<1>', lambda e: event_move_token(e, move_prop, 
         grid, grid_canvas,
         score_j1, score_j2,
-        lbl_j1, lbl_j2))
+        lbl_j1, lbl_j2,
+        menu, current_player,
+        btn_start, btn_middle, btn_end))
 
 # Renommage de la fenetre
-window.title("Entropie - " + P2_TURN)
+window.title("Entro.py")
 # fix de la taille de la fenetre
 window.resizable(False, False)
 # Affichage de la fenetre
