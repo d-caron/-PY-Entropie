@@ -69,6 +69,16 @@ P2_TURN = "Joueur 2, c'est à vous !"
 grid = []
 tokens = []
 
+# Propriétées de déplacements
+move_prop = [False, None, None]
+# Cette liste contiendra les informations essentielles au mouvement
+# telles que, dans l'ordre :
+#     ø [0] A-t'on déjà sélectioné un pion à déplacer ?
+#           Oui -> True
+#           Non -> False
+#     ø [1] Coordonnées x du pion qu'on veux deplacer
+#     ø [2] Coordonnées y du pion qu'on veux déplacer
+
 # Variables graphiques
 window = Tk()
 interface = Frame(window,
@@ -83,10 +93,10 @@ lbl_j2 = Label(game,
 lbl_j1 = Label(game,
         bg="#242424",
         fg=CYAN)
-grid_canvas = (Canvas(game, 
+grid_canvas = Canvas(game, 
         width=NB_COLS*SCALE, 
         height=NB_ROWS*SCALE, 
-        highlightthickness=0))
+        highlightthickness=0)
 
 # Scores joueurs
 score_j1 = IntVar(game, value=0)
@@ -263,7 +273,7 @@ def set_score(lbl_j1, lbl_j2, score_j1, score_j2):
     lbl_j2.config(text="Joueur 2 : " + str(score_j2.get()) + " pions bloqués")
 # end def
 
-def test_etat(grid, x, y):
+def test_state(grid, x, y):
     """
     ø parametres :
         -> grid : list
@@ -308,7 +318,7 @@ def calc_score(grid, score_j1, score_j2):
     score_j2.set(0)
     for row in range(NB_ROWS):
         for col in range(NB_COLS):
-            if grid[row][col] != 0 and test_etat(grid, row, col) == "blocked":
+            if grid[row][col] != 0 and test_state(grid, row, col) == "blocked":
                 if grid[row][col] == 1:
                     score_j2.set(score_j2.get() + 1)
                 elif grid[row][col] == 2:
@@ -379,6 +389,35 @@ def show_menu(menu, btn_start, btn_middle, btn_end):
     btn_send.pack(anchor="w", pady=2)
 # end def
 
+def move_token(event, move_prop, grid):
+    """
+    ø parametres :
+        -> event : tkinter.Event()
+        -> move_prop : list
+        -> grid : list
+    ø retour :
+        -> None
+    **  Permet de bouger le pion d'une case à une autre de la grille.
+        Cette fonction fais partie d'un enssemble, apellé lors de
+        l'évenement de clic sur la grille (Canvas)
+    """
+    if not move_prop[0]:
+        if grid[event.y//SCALE][event.x//SCALE] != 0:
+            move_prop[1] = event.x//SCALE
+            move_prop[2] = event.y//SCALE
+            move_prop[0] = True
+        else:
+            print("il n'y a pas de pions ici...")
+    elif grid[event.y//SCALE][event.x//SCALE] == 0:
+        move_prop[0] = False
+        grid[event.y//SCALE][event.x//SCALE] = grid[move_prop[2]][move_prop[1]]
+        grid[move_prop[2]][move_prop[1]] = 0
+    else:
+        move_prop[0] = False
+        print("mouvement impossible !")
+
+# end def
+
 # Les fonctions suivantes seront en francais,
 # car c'était des fonctions qui étaient demandées 😇
 
@@ -439,7 +478,8 @@ def event_change_config_to_begin(grid, grid_canvas,
     **  Change la configuration de la grille vers la config
         "debut de partie", et met a jour le score en fonction.
     """
-    grid = init_grid_start()
+    grid.clear()
+    grid.extend(init_grid_start())
     calc_score(grid, score_j1, score_j2)
     set_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
@@ -463,7 +503,8 @@ def event_change_config_to_middle(grid, grid_canvas,
     **  Change la configuration de la grille vers la config
         "millieu de partie", et met a jour le score en fonction.
     """
-    grid = init_grid_middle()
+    grid.clear()
+    grid.extend(init_grid_middle())
     calc_score(grid, score_j1, score_j2)
     set_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
@@ -487,7 +528,8 @@ def event_change_config_to_end(grid, grid_canvas,
     **  Change la configuration de la grille vers la config
         "fin de partie", et met a jour le score en fonction.
     """
-    grid = init_grid_end()
+    grid.clear()
+    grid.extend(init_grid_end())
     calc_score(grid, score_j1, score_j2)
     set_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
@@ -506,6 +548,17 @@ def event_test_est_dans_grille(position):
     """
     return est_dans_grille(position)
 # end def
+
+def event_move_token(event, move_prop, 
+        grid, grid_canvas,
+        score_j1, score_j2,
+        lbl_j1, lbl_j2):
+    move_token(event, move_prop, grid)
+    calc_score(grid, score_j1, score_j2)
+    set_score(lbl_j1, lbl_j2, score_j1, score_j2)
+    draw_grid(grid_canvas, grid)
+    draw_tokens(grid_canvas, grid)
+    interface.pack()
 
 #=========================
 # MAIN
@@ -536,6 +589,12 @@ btn_send.config(command=lambda :
 # Ajout de l'evenement lors de la pression sur la touche entree
 fld_position.bind("<Return>", 
         lambda e : print(event_test_est_dans_grille(fld_position.get())))
+
+# Ajout de l'évenement du clic sur la grille
+grid_canvas.bind('<1>', lambda e: event_move_token(e, move_prop, 
+        grid, grid_canvas,
+        score_j1, score_j2,
+        lbl_j1, lbl_j2))
 
 # Renommage de la fenetre
 window.title("Entropie - " + P2_TURN)
