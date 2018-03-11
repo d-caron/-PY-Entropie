@@ -36,7 +36,7 @@
 # intégré de base dans python3 et la version 3 est obligatoire pour le projet
 # (c'est marqué dans les consignes) donc pas d'excuses mécréants ! 😇
 # J'ai fait pas mal d'efforts pour que le commentaire, la documentaion 
-# et mes fonctions soient le plus claire possible et j'espère que ça le sera 
+# et mes fonctions soient le plus clairs possible et j'espère que ça le sera 
 # suffisamment. 
 # ----------------------------------------------------------------------------
 # 
@@ -323,9 +323,94 @@ def calc_score(grid, score_j1, score_j2):
         for col in range(NB_COLS):
             if grid[row][col] != 0 and test_state(grid, row, col) == "blocked":
                 if grid[row][col] == 1:
-                    score_j2.set(score_j2.get() + 1)
-                elif grid[row][col] == 2:
                     score_j1.set(score_j1.get() + 1)
+                elif grid[row][col] == 2:
+                    score_j2.set(score_j2.get() + 1)
+# end def
+
+def test_isolated(grid, player):
+    isolated = []
+    for row in range(NB_ROWS):
+        for col in range(NB_COLS):
+            if grid[row][col] == player and \
+                    test_state(grid, row, col) == "isolated":
+                isolated.append([row, col])
+    return isolated
+# end def
+
+def test_direction(x1, y1, x2, y2):
+    if x2 == x1 or y2 == y1 or \
+            x1 - x2 == y2 - y1 or \
+            x2 - x1 == y1 - y2 or \
+            x2 - x1 == y2 - y1 or \
+            x1 - x2 == y1 - y2:
+        print("direction OK")
+        return True
+
+    else:
+        print("direction nOK")
+        return False
+# end def
+
+def test_between(x1, y1, x2, y2):
+    # Cas bas, droite
+    if x2 > x1 and y2 > y1:
+        for i in range(1, x2-x1):
+            if grid[y1+i][x1+i] != 0:
+                print("between BD False")
+                return False
+
+    # Cas droite
+    elif x2 > x1 and y2 == y1:
+        for i in range(1, x2-x1):
+            if grid[y1][x1+i] != 0:
+                print("between .D False")
+                return False
+
+    # Cas haut, droite
+    elif x2 > x1 and y2 < y1:
+        for i in range(1, x2-x1):
+            if grid[y1-i][x1+i] != 0:
+                print("between HD False")
+                return False
+
+    # Cas bas, gauche
+    elif x2 < x1 and y2 > y1:
+        for i in range(1, x1-x2):
+            if grid[y1+i][x1-i] != 0:
+                print("between BG False")
+                return False
+
+    # Cas gauche
+    elif x2 < x1 and y2 == y1:
+        for i in range(1, x1-x2):
+            if grid[y1][x1-i] != 0:
+                print("between .G False")
+                return False
+            
+    # Cas haut, gauche
+    elif x2 < x1 and y2 < y1:
+        for i in range(1, x1-x2):
+            if grid[y1-i][x1-i] != 0:
+                print("between HG False")
+                return False
+    
+    # Cas bas
+    elif x2 == x1 and y2 > y1:
+        for i in range(1, y2-y1):
+            if grid[y1+i][x1] != 0:
+                print("between B. False")
+                return False
+
+    # Cas haut
+    elif x2 == x1 and y2 < y1:
+        for i in range(1, y1-y2):
+            if grid[y1-i][x1] != 0:
+                print("between H. False")
+                return False
+
+    print("between True")
+    return True
 # end def
 
 def show_game(game, lbl_j2, grid_canvas, lbl_j1, grid):
@@ -396,8 +481,11 @@ def move_token(event, move_prop, grid, current_player):
         Cette fonction fais partie d'un enssemble, apellé lors de
         l'évenement de clic sur la grille (Canvas)
     """
+    # Si aucun pion n'a encore été selectioné
     if not move_prop[0]:
+        # Si la case selectioné contient bien un pion du joueur courant
         if grid[event.y//SCALE][event.x//SCALE] == current_player.get():
+            # Si le pion n'est pas bloqué ou isolé
             if test_state(grid, event.y//SCALE, event.x//SCALE) == None:
                 move_prop[1] = event.x//SCALE
                 move_prop[2] = event.y//SCALE
@@ -409,25 +497,30 @@ def move_token(event, move_prop, grid, current_player):
                         event.y//SCALE*SCALE+SCALE, 
                         outline="#7FFF00",
                         width="3")
+
+            # Si le pion est bloqué ou isolé
             else:
                 print("Ce pion ne peut pas bouger.",
                         "il est soit isolé, soit bloqué.")
+        # Si la case selectioné ne contient pas un pion 
+        # du joueur courant
         else:
             print("ça n'est pas un de vos pions")
-    elif grid[event.y//SCALE][event.x//SCALE] == 0:
-        move_prop[0] = False
-        grid[event.y//SCALE][event.x//SCALE] = grid[move_prop[2]][move_prop[1]]
-        grid[move_prop[2]][move_prop[1]] = 0
-        if current_player.get() == 1:
-            current_player.set(value=2)
-        else:
-            current_player.set(value=1)
+    # Si un pion à déjà été selectioné,
     else:
-        move_prop[0] = False
-        print("Il y a deja un pion ici...")
-    
+        # On tente de déplacer le pion
+        move = deplacement_voisin(grid, current_player.get(), 
+                move_prop[1], move_prop[2],
+                event.x//SCALE, event.y//SCALE)
+
+        # Changement du tour de jeu
+        if move:
+            current_player.set(current_player.get() % 2 +1)
 # end def
 
+# **** #
+#  FR  #
+# **** #
 # Les fonctions suivantes seront en francais,
 # car c'était des fonctions qui étaient demandées 😇
 
@@ -465,12 +558,27 @@ def est_dans_grille(position):
         return False
 # end def
 
-def deplacement_voisin():
-    pass
+def deplacement_voisin(grid, current_player, x1, y1, x2, y2):
+    isolated = test_isolated(grid, current_player)
+    # S'il existe des pions isolé pour le joueur courant
+    if len(isolated) > 0:
+        return deplacement_isole()
+    # S'il nexiste pas de pions isolé pour le joueur courant
+    # et qu'il n'y à pas de pions sur la case destination
+    elif grid[y2][x2] == 0:
+        if test_direction(x1, y1, x2, y2) and \
+                test_between(x1, y1, x2, y2):
+            move_prop[0] = False
+            grid[y2][x2] = grid[y1][x1]
+            grid[y1][x1] = 0
+            return True
+    else:
+        return False
+
 # end def
 
 def deplacement_isole():
-    pass
+    return False
 # end def
 
 #=========================
@@ -561,6 +669,7 @@ def event_move_token(event, move_prop,
         lbl_j1, lbl_j2,
         menu, current_player,
         btn_start, btn_middle, btn_end):
+    # Si aucun pion n'a encore été selectioné
     move_token(event, move_prop, grid, current_player)
     if not move_prop[0]:
         calc_score(grid, score_j1, score_j2)
