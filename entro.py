@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*-coding:utf-8 -*
 
-# ============================================================================
+# ======================================================================
 #  ______       _
 # |  ____|     | |                            
 # | |__   _ __ | |_ _ __ ___      _ __  _   _ 
@@ -10,13 +10,13 @@
 # |______|_| |_|\__|_|  \___/  (_) .__/ \__, |
 #                                | |     __/ |
 #                                |_|    |___/ 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 #
 # projet : Entropie
 # fichier : entropie.py
 # Auteur : 😎 On a dit ANONYME !
 # MAJ : 13/02/18
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # 
 # Plan :
 #   ø CONSTANTES
@@ -29,21 +29,22 @@
 #   ø FONCTIONS
 #   ø EVENEMENTS
 #   ø MAIN (CODE PRINCIPAL)
-# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------
 #
 # Remarques : Ceci est un petit mot à l'atention de mes correcteurs.
 # J'ai codé ce jeu avec la bibliothèque tkinter. c'est une bibliothèque
-# intégré de base dans python3 et la version 3 est obligatoire pour le projet
+# intégré de base dans python3 et la version 3 est obligatoire pour le 
+# projet.
 # (c'est marqué dans les consignes) donc pas d'excuses mécréants ! 😇
 # J'ai fait pas mal d'efforts pour que le commentaire, la documentaion 
-# et mes fonctions soient le plus clairs possible et j'espère que ça le sera 
-# suffisamment. 
-# ----------------------------------------------------------------------------
+# et mes fonctions soient le plus clairs possible et j'espère que ça le 
+# sera suffisamment. 
+# ----------------------------------------------------------------------
 # 
 # © copyright : Ce code est certainement soumis à des trucs beaucoup
-# trop obscurs et chiants pour que vous puissiez l'utiliser sans que l'auteur
-# ait le courage de vous en tenir rigueur.
-# ============================================================================
+# trop obscurs et chiants pour que vous puissiez l'utiliser sans que 
+# l'auteur ait le courage de vous en tenir rigueur.
+# ======================================================================
 
 from tkinter import *
 
@@ -66,15 +67,14 @@ TOKEN_MARGIN = 10
 grid = []
 tokens = []
 
-# Propriétées de déplacements
-move_prop = [False, None, None]
-# Cette liste contiendra les informations essentielles au mouvement
-# telles que, dans l'ordre :
-#     ø [0] A-t'on déjà sélectioné un pion à déplacer ?
+# Propriétées du jeton selectioné
+token_prop = [False, None, None]
+# Cette liste contiendra les informations sur le jeton selectioné
+#     ø [0] Un pion est-il sélectioné ?
 #           Oui -> True
 #           Non -> False
-#     ø [1] Coordonnées x du pion qu'on veux deplacer
-#     ø [2] Coordonnées y du pion qu'on veux déplacer
+#     ø [1] Coordonnées x du pion, s'il y à lieu (sinon, None)
+#     ø [2] Coordonnées y du pion, s'il y à lieu (sinon, None)
 
 # Variables graphiques
 window = Tk()
@@ -467,11 +467,39 @@ def show_menu(menu, btn_start, btn_middle, btn_end):
     lbl_turn.pack(anchor="w")
 # end def
 
-def move_token(event, move_prop, grid, current_player):
+def select_token(event, grid, x, y, player, token_prop):
+    # Si la case selectioné contient bien un pion du joueur courant
+    if grid[y][x] == player:
+        # Si le pion n'est pas bloqué ou isolé
+        if test_state(grid, x, y) == None:
+            token_prop[1] = x
+            token_prop[2] = y
+            token_prop[0] = True
+            event.widget.create_rectangle(x*SCALE, y*SCALE,
+                    x*SCALE+SCALE, y*SCALE+SCALE, 
+                    outline="#7FFF00", width="3")
+            
+            return True
+
+        # Si le pion est bloqué ou isolé
+        else:
+            print("Ce pion ne peut pas bouger.",
+                    "il est soit isolé, soit bloqué.")
+
+            return False
+    # Si la case selectioné ne contient pas un pion 
+    # du joueur courant
+    else:
+        print("ça n'est pas un de vos pions")
+    
+        return False
+# end def
+
+def move_token(token_prop, grid, x1, y1, x2, y2):
     """
     ø parametres :
         -> event : tkinter.Event()
-        -> move_prop : list
+        -> token_prop : list
         -> grid : list
     ø retour :
         -> None
@@ -479,41 +507,18 @@ def move_token(event, move_prop, grid, current_player):
         Cette fonction fais partie d'un enssemble, apellé lors de
         l'évenement de clic sur la grille (Canvas)
     """
-    # Si aucun pion n'a encore été selectioné
-    if not move_prop[0]:
-        # Si la case selectioné contient bien un pion du joueur courant
-        if grid[event.y//SCALE][event.x//SCALE] == current_player.get():
-            # Si le pion n'est pas bloqué ou isolé
-            if test_state(grid, event.x//SCALE, event.y//SCALE) == None:
-                move_prop[1] = event.x//SCALE
-                move_prop[2] = event.y//SCALE
-                move_prop[0] = True
-                event.widget.create_rectangle(
-                        event.x//SCALE*SCALE,
-                        event.y//SCALE*SCALE,
-                        event.x//SCALE*SCALE+SCALE,
-                        event.y//SCALE*SCALE+SCALE, 
-                        outline="#7FFF00",
-                        width="3")
+    token_prop[0] = False
+    grid[y2][x2] = grid[y1][x1]
+    grid[y1][x1] = 0
+    return True
+# end def
 
-            # Si le pion est bloqué ou isolé
-            else:
-                print("Ce pion ne peut pas bouger.",
-                        "il est soit isolé, soit bloqué.")
-        # Si la case selectioné ne contient pas un pion 
-        # du joueur courant
-        else:
-            print("ça n'est pas un de vos pions")
-    # Si un pion à déjà été selectioné,
-    else:
-        # On tente de déplacer le pion
-        move = deplacement_voisin(grid, current_player.get(), 
-                move_prop[1], move_prop[2],
-                event.x//SCALE, event.y//SCALE)
-
-        # Changement du tour de jeu
-        if move:
-            current_player.set(current_player.get() % 2 +1)
+def cancel_move(token_prop, grid_canvas, grid):
+    token_prop.clear()
+    token_prop.extend([False, None, None])
+    draw_grid(grid_canvas, grid)
+    draw_tokens(grid_canvas, grid)
+    print("Mouvement annulé")
 # end def
 
 # **** #
@@ -556,34 +561,24 @@ def est_dans_grille(position):
         return False
 # end def
 
-def deplacement_voisin(grid, current_player, x1, y1, x2, y2):
-    isolated = []
-    isolated = test_isolated(grid, current_player)
-    # S'il existe des pions isolé pour le joueur courant:
-    if len(isolated) > 0:
-        # On tente un déplacement isolé
-        return deplacement_isole(isolated, grid, x1, y1, x2, y2)
-    # S'il nexiste pas de pions isolé pour le joueur courant,
-    # et qu'il n'y à pas de pions sur la case destination:
-    elif grid[y2][x2] == 0:
+def deplacement_voisin(grid, x1, y1, x2, y2):
+    # S'il n'y à pas de pions sur la case destination:
+    if grid[y2][x2] == 0:
         # Si la case destination est dans une direction valide,
         # et que les cases entre le départ et la destination sont libre:
         if test_direction(x1, y1, x2, y2) and \
                 test_between(x1, y1, x2, y2):
-            move_prop[0] = False
-            # On, bouge le pion !
-            grid[y2][x2] = grid[y1][x1]
-            grid[y1][x1] = 0
-            return True
-    
-    cancel_move(move_prop, grid_canvas, grid)
-    return False
+            # On bouge le pion
+            return move_token(token_prop, grid, x1, y1, x2, y2)
+      
+    cancel_move(token_prop, grid_canvas, grid)
 
+    return False
 # end def
 
 def deplacement_isole(isolated, grid, x1, y1, x2, y2):
     for i in range (len(isolated)):
-        # Si la case destination est a proximité d'un pion isolé:
+        # Si la case destination est à coté d'un pion isolé allié:
         if y2-1 <= isolated[i][0] <= y2+1 and \
                 x2-1 <= isolated[i][1] <= x2+1 and \
                 isolated[i] != [y2, x2]:
@@ -594,22 +589,19 @@ def deplacement_isole(isolated, grid, x1, y1, x2, y2):
                 # sont libre:
                 if test_direction(x1, y1, x2, y2) and \
                         test_between(x1, y1, x2, y2):
-                    move_prop[0] = False
-                    grid[y2][x2] = grid[y1][x1]
-                    grid[y1][x1] = 0
-                    return True
+
+                    # On bouge le pion
+                    return move_token(token_prop, grid, x1, y1, x2, y2)
+        
+    # Si la case destination n'est pas à coté d'un pion isolé allié:
+       
+    cancel_move(token_prop, grid_canvas, grid)
 
     print("Vous avez un pion isolé !")
     print(isolated)
+
     return False
 # end def
-
-def cancel_move(move_prop, grid_canvas, grid):
-    move_prop.clear()
-    move_prop.extend([False, None, None])
-    draw_grid(grid_canvas, grid)
-    draw_tokens(grid_canvas, grid)
-    print("Mouvement annulé")
 
 #=========================
 # EVENEMENTS
@@ -693,21 +685,45 @@ def event_change_config_to_end(grid, grid_canvas,
     interface.pack()
 # end def
 
-def event_move_token(event, move_prop, 
+def event_move_token(event, token_prop, 
         grid, grid_canvas,
         score_j1, score_j2,
         lbl_j1, lbl_j2,
         menu, current_player,
         btn_start, btn_middle, btn_end):
-    # Si aucun pion n'a encore été selectioné
-    move_token(event, move_prop, grid, current_player)
-    if not move_prop[0]:
-        calc_score(grid, score_j1, score_j2)
-        set_score(lbl_j1, lbl_j2, score_j1, score_j2)
-        draw_grid(grid_canvas, grid)
-        draw_tokens(grid_canvas, grid)
-        show_menu(menu, btn_start, btn_middle, btn_end)
-        interface.pack()
+    x = event.x//SCALE
+    y = event.y//SCALE
+
+    # Si aucun pion n'a encore été selectioné:
+    if not token_prop[0]:
+        select_token(event, grid, x, y, current_player.get(), token_prop)
+
+    # Si un pion à déjà été sélectioné:
+    else:
+        isolated = []
+        isolated = test_isolated(grid, current_player.get())
+
+        # S'il existe des pions isolé pour le joueur courant:
+        if len(isolated) > 0:
+            # On tente un déplacement isolé
+            print("depl. isole")
+            move = deplacement_isole(isolated, grid,
+                    token_prop[1], token_prop[2], x, y)
+        # S'il n'existe pas de pions isolé pour le joueur courant:
+        else:
+            # On tente un déplacement voisin
+            print("depl. voisin")
+            move = deplacement_voisin(grid,
+                    token_prop[1], token_prop[2], x, y)
+
+        if move:
+            current_player.set(current_player.get() % 2 +1) 
+            calc_score(grid, score_j1, score_j2)
+            set_score(lbl_j1, lbl_j2, score_j1, score_j2)
+            draw_grid(grid_canvas, grid)
+            draw_tokens(grid_canvas, grid)
+            show_menu(menu, btn_start, btn_middle, btn_end)
+            interface.pack()
 # end def
 
 #=========================
@@ -736,7 +752,7 @@ btn_end.config(command=lambda :
         lbl_j1, lbl_j2))
 
 # Ajout de l'évenement du clic sur la grille
-grid_canvas.bind('<1>', lambda e: event_move_token(e, move_prop, 
+grid_canvas.bind('<1>', lambda e: event_move_token(e, token_prop, 
         grid, grid_canvas,
         score_j1, score_j2,
         lbl_j1, lbl_j2,
