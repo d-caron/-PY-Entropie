@@ -532,6 +532,14 @@ def cancel_move(token_prop, grid_canvas, grid):
     draw_tokens(grid_canvas, grid)
 # end def
 
+def show_isolated(grid_canvas, isolated):
+    for elt in isolated:
+        x = elt[1]
+        y = elt[0]
+        grid_canvas.create_rectangle(x*SCALE, y*SCALE,
+                x*SCALE+SCALE, y*SCALE+SCALE, 
+                outline="red", width="3")
+
 # **** #
 #  FR  #
 # **** #
@@ -589,7 +597,7 @@ def deplacement_voisin(grid, x1, y1, x2, y2):
     return False
 # end def
 
-def deplacement_isole(isolated, grid, x1, y1, x2, y2):
+def deplacement_isole(isolated, grid, grid_canvas, x1, y1, x2, y2):
     for i in range (len(isolated)):
         # Si la case destination est à coté d'un pion isolé allié:
         if y2-1 <= isolated[i][0] <= y2+1 and \
@@ -608,8 +616,9 @@ def deplacement_isole(isolated, grid, x1, y1, x2, y2):
         
     # Si la case destination n'est pas à coté d'un pion isolé allié:
     cancel_move(token_prop, grid_canvas, grid)
+    show_isolated(grid_canvas, isolated)
     lbl_message.config(text="\no(*≧□≦)o" +
-            "\nVous avez un pion isolé !")
+            "\nVous avez des pion isolé !")
 
     return False
 # end def
@@ -726,7 +735,7 @@ def event_move_token(event, token_prop,
         # S'il existe des pions isolé pour le joueur courant:
         if len(isolated) > 0:
             # On tente un déplacement isolé
-            move = deplacement_isole(isolated, grid,
+            move = deplacement_isole(isolated, grid, grid_canvas,
                     token_prop[1], token_prop[2], x, y)
         # S'il n'existe pas de pions isolé pour le joueur courant:
         else:
