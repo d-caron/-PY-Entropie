@@ -101,6 +101,11 @@ lbl_turn = Label(menu,
         text="C'est votre tour", 
         bg="#242424",
         fg="#DADADA")
+lbl_message = Label(menu, 
+        justify=LEFT, 
+        bg="#242424",
+        fg="#DADADA")
+
 grid_canvas = Canvas(game, 
         width=NB_COLS*SCALE, 
         height=NB_ROWS*SCALE, 
@@ -111,7 +116,7 @@ score_j1 = IntVar(game, value=0)
 score_j2 = IntVar(game, value=0)
 
 # Joueur courrant
-current_player = IntVar(menu, value=2)
+current_player = IntVar(menu, value=1)
 
 # Objets interactifs (boutons / champs de saisies / etc...)
 btn_start = Button(menu, 
@@ -129,6 +134,11 @@ btn_end = Button(menu,
         bg="#848484",
         width=14,
         highlightbackground="#424242")
+btn_pass = Button(menu, 
+        text="PASSER SON TOUR", 
+        bg="#848484",
+        width=14,
+        highlightbackground="#424242")
 
 
 #=========================
@@ -141,14 +151,14 @@ btn_end = Button(menu,
 [-------game-------] [----menu-----]
 
 |===================|==============|
-| lbl_j2            |              |
+| lbl_j2            | lbl_config   |
 |___________________| btn_start    |
 |                   | btn_middle   |
 |                   | btn_end      |
-| grid_frame        |              |
-|                   |              |
-|                   |              |
-|___________________|              |
+| grid_frame        | lbl_player   |
+|                   | lbl_turn     |
+|                   | btn_pass     |
+|___________________| lbl_message  |
 | lbl_j1            |              |
 |___________________|______________|             
 """
@@ -347,7 +357,6 @@ def test_direction(x1, y1, x2, y2):
         return True
 
     else:
-        print("cette case n'est pas valide")
         return False
 # end def
 
@@ -356,56 +365,48 @@ def test_between(x1, y1, x2, y2):
     if x2 > x1 and y2 > y1:
         for i in range(1, x2-x1):
             if grid[y1+i][x1+i] != 0:
-                print("cette case n'est pas valide")
                 return False
 
     # Cas droite
     elif x2 > x1 and y2 == y1:
         for i in range(1, x2-x1):
             if grid[y1][x1+i] != 0:
-                print("cette case n'est pas valide")
                 return False
 
     # Cas haut, droite
     elif x2 > x1 and y2 < y1:
         for i in range(1, x2-x1):
             if grid[y1-i][x1+i] != 0:
-                print("cette case n'est pas valide")
                 return False
 
     # Cas bas, gauche
     elif x2 < x1 and y2 > y1:
         for i in range(1, x1-x2):
             if grid[y1+i][x1-i] != 0:
-                print("cette case n'est pas valide")
                 return False
 
     # Cas gauche
     elif x2 < x1 and y2 == y1:
         for i in range(1, x1-x2):
             if grid[y1][x1-i] != 0:
-                print("cette case n'est pas valide")
                 return False
             
     # Cas haut, gauche
     elif x2 < x1 and y2 < y1:
         for i in range(1, x1-x2):
             if grid[y1-i][x1-i] != 0:
-                print("cette case n'est pas valide")
                 return False
     
     # Cas bas
     elif x2 == x1 and y2 > y1:
         for i in range(1, y2-y1):
             if grid[y1+i][x1] != 0:
-                print("cette case n'est pas valide")
                 return False
 
     # Cas haut
     elif x2 == x1 and y2 < y1:
         for i in range(1, y1-y2):
             if grid[y1-i][x1] != 0:
-                print("cette case n'est pas valide")
                 return False
 
     return True
@@ -457,14 +458,13 @@ def show_menu(menu, btn_start, btn_middle, btn_end):
     btn_middle.pack(anchor="w", pady=1)
     btn_end.pack(anchor="w", pady=1)
 
-    if current_player.get() == 1:
-        color = CYAN
-    else:
-        color = PINK
-    lbl_player.config(text="Joueur " + str(current_player.get()),
-            fg=color)
+    set_player(lbl_player, current_player.get())
     lbl_player.pack(anchor="w", pady=1)
     lbl_turn.pack(anchor="w")
+
+    btn_pass.pack(anchor="w", pady=1)
+    lbl_message.config(text="\nヾ(^▽^ヾ)")
+    lbl_message.pack(anchor="w", pady=1)
 # end def
 
 def select_token(event, grid, x, y, player, token_prop):
@@ -478,19 +478,22 @@ def select_token(event, grid, x, y, player, token_prop):
             event.widget.create_rectangle(x*SCALE, y*SCALE,
                     x*SCALE+SCALE, y*SCALE+SCALE, 
                     outline="#7FFF00", width="3")
-            
+            lbl_message.config(text="\nヾ(^▽^ヾ)")
+
             return True
 
         # Si le pion est bloqué ou isolé
         else:
-            print("Ce pion ne peut pas bouger.",
-                    "il est soit isolé, soit bloqué.")
+            lbl_message.config(text="\no(*≧□≦)o" +
+            "\nCe pion ne peut pas bouger," +
+            "\nil est soit isolé, soit bloqué.")
 
             return False
     # Si la case selectioné ne contient pas un pion 
     # du joueur courant
     else:
-        print("ça n'est pas un de vos pions")
+        lbl_message.config(text="\no(*≧□≦)o" +
+            "\nCe n'est pas un de vos pions")
     
         return False
 # end def
@@ -513,12 +516,20 @@ def move_token(token_prop, grid, x1, y1, x2, y2):
     return True
 # end def
 
+def set_player(lbl_player, player):
+    if player == 1:
+        color = CYAN
+    else:
+        color = PINK
+    lbl_player.config(text="Joueur " + str(player),
+            fg=color)
+# end def
+
 def cancel_move(token_prop, grid_canvas, grid):
     token_prop.clear()
     token_prop.extend([False, None, None])
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
-    print("Mouvement annulé")
 # end def
 
 # **** #
@@ -570,8 +581,10 @@ def deplacement_voisin(grid, x1, y1, x2, y2):
                 test_between(x1, y1, x2, y2):
             # On bouge le pion
             return move_token(token_prop, grid, x1, y1, x2, y2)
-      
+ 
     cancel_move(token_prop, grid_canvas, grid)
+    lbl_message.config(text="\no(*≧□≦)o" +
+            "\nCette case n'est pas valide !") 
 
     return False
 # end def
@@ -594,11 +607,9 @@ def deplacement_isole(isolated, grid, x1, y1, x2, y2):
                     return move_token(token_prop, grid, x1, y1, x2, y2)
         
     # Si la case destination n'est pas à coté d'un pion isolé allié:
-       
     cancel_move(token_prop, grid_canvas, grid)
-
-    print("Vous avez un pion isolé !")
-    print(isolated)
+    lbl_message.config(text="\no(*≧□≦)o" +
+            "\nVous avez un pion isolé !")
 
     return False
 # end def
@@ -628,6 +639,8 @@ def event_change_config_to_begin(grid, grid_canvas,
     """
     grid.clear()
     grid.extend(init_grid_start())
+    current_player.set(1)
+    set_player(lbl_player, current_player.get())
     calc_score(grid, score_j1, score_j2)
     set_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
@@ -653,6 +666,8 @@ def event_change_config_to_middle(grid, grid_canvas,
     """
     grid.clear()
     grid.extend(init_grid_middle())
+    current_player.set(1)
+    set_player(lbl_player, current_player.get())
     calc_score(grid, score_j1, score_j2)
     set_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
@@ -678,6 +693,8 @@ def event_change_config_to_end(grid, grid_canvas,
     """
     grid.clear()
     grid.extend(init_grid_end())
+    current_player.set(1)
+    set_player(lbl_player, current_player.get())
     calc_score(grid, score_j1, score_j2)
     set_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
@@ -699,6 +716,9 @@ def event_move_token(event, token_prop,
         select_token(event, grid, x, y, current_player.get(), token_prop)
 
     # Si un pion à déjà été sélectioné:
+    elif (token_prop[1], token_prop[2]) == (x, y):
+        cancel_move(token_prop, grid_canvas, grid)
+    # Si un pion à déjà été sélectioné:
     else:
         isolated = []
         isolated = test_isolated(grid, current_player.get())
@@ -706,13 +726,11 @@ def event_move_token(event, token_prop,
         # S'il existe des pions isolé pour le joueur courant:
         if len(isolated) > 0:
             # On tente un déplacement isolé
-            print("depl. isole")
             move = deplacement_isole(isolated, grid,
                     token_prop[1], token_prop[2], x, y)
         # S'il n'existe pas de pions isolé pour le joueur courant:
         else:
             # On tente un déplacement voisin
-            print("depl. voisin")
             move = deplacement_voisin(grid,
                     token_prop[1], token_prop[2], x, y)
 
@@ -725,6 +743,11 @@ def event_move_token(event, token_prop,
             show_menu(menu, btn_start, btn_middle, btn_end)
             interface.pack()
 # end def
+
+def event_pass(token_prop, grid_canvas, grid, current_player):
+    cancel_move(token_prop, grid_canvas, grid)
+    current_player.set(current_player.get() % 2 + 1)
+    set_player(lbl_player, current_player.get())
 
 #=========================
 # MAIN
@@ -750,6 +773,8 @@ btn_end.config(command=lambda :
         event_change_config_to_end(grid, grid_canvas, 
         score_j1, score_j2,
         lbl_j1, lbl_j2))
+btn_pass.config(command=lambda :
+        event_pass(token_prop, grid_canvas, grid, current_player))
 
 # Ajout de l'évenement du clic sur la grille
 grid_canvas.bind('<1>', lambda e: event_move_token(e, token_prop, 
