@@ -76,6 +76,11 @@ token_prop = [False, None, None]
 #     ø [1] Coordonnées x du pion, s'il y à lieu (sinon, None)
 #     ø [2] Coordonnées y du pion, s'il y à lieu (sinon, None)
 
+# Etat de la partie
+victory = [False, False]
+#     ø [0] Victoire (True) ou pas (False) du joueur 1
+#     ø [1] Victoire (True) ou pas (False) du joueur 2
+
 # Variables graphiques
 window = Tk()
 interface = Frame(window,
@@ -316,7 +321,7 @@ def test_state(grid, x, y):
         return None
 # end def
 
-def calc_score(grid, score_j1, score_j2):
+def calc_score(grid, lbl_player, score_j1, score_j2, victory):
     """
     ø parametres :
         -> grid : list
@@ -336,6 +341,38 @@ def calc_score(grid, score_j1, score_j2):
                     score_j1.set(score_j1.get() + 1)
                 elif grid[row][col] == 2:
                     score_j2.set(score_j2.get() + 1)
+    
+# end def
+
+def test_victory(victory, current_player, lbl_player, score_j1, score_j2):
+    if score_j1 == 7:
+        print("0 True")
+        victory[0] = True
+    if score_j2 == 7:
+        print("1 True")
+        victory[1] = True
+    
+    if victory[0] == True and victory[1] == False:
+        print("victory 1")
+        trigger_victory(1, current_player, lbl_player, grid, grid_canvas)
+    elif victory[1] == True and victory[0] == False:
+        print("victory 2")
+        trigger_victory(2, current_player, lbl_player, grid, grid_canvas)
+    elif victory[0] == True and victory[1] == True:
+        # doit déclencher l'égalité, plus tard.
+        pass
+# end def
+
+def trigger_victory(player, current_player, lbl_player, grid, grid_canvas):
+    current_player.set(player)
+    print("victoire du joueur " + str(player))
+    lbl_player.config(text="Joueur " + str(player) + ": Victoire",
+            fg="#FFFF00")
+    lbl_turn.config(text="C'est fini !")
+    lbl_message.config(text="\nヾ(^▽^ヾ)\n" +
+            "Bravo, joueur " + str(player))
+
+    show_blocked(player, grid, grid_canvas)
 # end def
 
 def test_isolated(grid, player):
@@ -539,6 +576,17 @@ def show_isolated(grid_canvas, isolated):
         grid_canvas.create_rectangle(x*SCALE, y*SCALE,
                 x*SCALE+SCALE, y*SCALE+SCALE, 
                 outline="red", width="3")
+# end def
+
+def show_blocked(player, grid, grid_canvas):
+    for row in range(NB_ROWS):
+        for col in range(NB_COLS):
+            if grid[row][col] == player \
+                    and test_state(grid, col, row) == "blocked":
+                grid_canvas.create_rectangle(col*SCALE, row*SCALE,
+                        col*SCALE+SCALE, row*SCALE+SCALE, 
+                        outline="#FFFF00", width="3")
+# end def
 
 # **** #
 #  FR  #
@@ -632,7 +680,8 @@ def deplacement_isole(isolated, grid, grid_canvas, x1, y1, x2, y2):
 
 def event_change_config_to_begin(grid, grid_canvas, 
         score_j1, score_j2,
-        lbl_j1, lbl_j2):
+        lbl_j1, lbl_j2,
+        victory):
     """
     ø parametres :
         -> grid : list
@@ -648,9 +697,11 @@ def event_change_config_to_begin(grid, grid_canvas,
     """
     grid.clear()
     grid.extend(init_grid_start())
+    victory.clear()
+    victory.extend([False, False])
     current_player.set(1)
     set_player(lbl_player, current_player.get())
-    calc_score(grid, score_j1, score_j2)
+    calc_score(grid, lbl_player, score_j1, score_j2, victory)
     set_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
@@ -659,7 +710,8 @@ def event_change_config_to_begin(grid, grid_canvas,
 
 def event_change_config_to_middle(grid, grid_canvas, 
         score_j1, score_j2,
-        lbl_j1, lbl_j2):
+        lbl_j1, lbl_j2,
+        victory):
     """
     ø parametres :
         -> grid : list
@@ -675,9 +727,11 @@ def event_change_config_to_middle(grid, grid_canvas,
     """
     grid.clear()
     grid.extend(init_grid_middle())
+    victory.clear()
+    victory.extend([False, False])
     current_player.set(1)
     set_player(lbl_player, current_player.get())
-    calc_score(grid, score_j1, score_j2)
+    calc_score(grid, lbl_player, score_j1, score_j2, victory)
     set_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
@@ -686,7 +740,8 @@ def event_change_config_to_middle(grid, grid_canvas,
 
 def event_change_config_to_end(grid, grid_canvas, 
         score_j1, score_j2,
-        lbl_j1, lbl_j2):
+        lbl_j1, lbl_j2,
+        victory):
     """
     ø parametres :
         -> grid : list
@@ -702,9 +757,11 @@ def event_change_config_to_end(grid, grid_canvas,
     """
     grid.clear()
     grid.extend(init_grid_end())
+    victory.clear()
+    victory.extend([False, False])
     current_player.set(1)
     set_player(lbl_player, current_player.get())
-    calc_score(grid, score_j1, score_j2)
+    calc_score(grid, lbl_player, score_j1, score_j2, victory)
     set_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
@@ -715,48 +772,58 @@ def event_move_token(event, token_prop,
         grid, grid_canvas,
         score_j1, score_j2,
         lbl_j1, lbl_j2,
+        victory, lbl_player,
         menu, current_player,
         btn_start, btn_middle, btn_end):
     x = event.x//SCALE
     y = event.y//SCALE
 
-    # Si aucun pion n'a encore été selectioné:
-    if not token_prop[0]:
-        select_token(event, grid, x, y, current_player.get(), token_prop)
+    if not victory[0] and not victory[1]:
 
-    # Si un pion à déjà été sélectioné:
-    elif (token_prop[1], token_prop[2]) == (x, y):
-        cancel_move(token_prop, grid_canvas, grid)
-    # Si un pion à déjà été sélectioné:
-    else:
-        isolated = []
-        isolated = test_isolated(grid, current_player.get())
+        # Si aucun pion n'a encore été selectioné:
+        if not token_prop[0]:
+            select_token(event, grid, x, y, current_player.get(), token_prop)
 
-        # S'il existe des pions isolé pour le joueur courant:
-        if len(isolated) > 0:
-            # On tente un déplacement isolé
-            move = deplacement_isole(isolated, grid, grid_canvas,
-                    token_prop[1], token_prop[2], x, y)
-        # S'il n'existe pas de pions isolé pour le joueur courant:
+        # Si un pion à déjà été sélectioné:
+        elif (token_prop[1], token_prop[2]) == (x, y):
+            cancel_move(token_prop, grid_canvas, grid)
+        # Si un pion à déjà été sélectioné:
         else:
-            # On tente un déplacement voisin
-            move = deplacement_voisin(grid,
-                    token_prop[1], token_prop[2], x, y)
+            isolated = []
+            isolated = test_isolated(grid, current_player.get())
 
-        if move:
-            current_player.set(current_player.get() % 2 +1) 
-            calc_score(grid, score_j1, score_j2)
-            set_score(lbl_j1, lbl_j2, score_j1, score_j2)
-            draw_grid(grid_canvas, grid)
-            draw_tokens(grid_canvas, grid)
-            show_menu(menu, btn_start, btn_middle, btn_end)
-            interface.pack()
+            # S'il existe des pions isolé pour le joueur courant:
+            if len(isolated) > 0:
+                # On tente un déplacement isolé
+                move = deplacement_isole(isolated, grid, grid_canvas,
+                        token_prop[1], token_prop[2], x, y)
+            # S'il n'existe pas de pions isolé pour le joueur courant:
+            else:
+                # On tente un déplacement voisin
+                move = deplacement_voisin(grid,
+                        token_prop[1], token_prop[2], x, y)
+
+            if move:
+                calc_score(grid, lbl_player, score_j1, score_j2, victory)
+                set_score(lbl_j1, lbl_j2, score_j1, score_j2)
+                draw_grid(grid_canvas, grid)
+                draw_tokens(grid_canvas, grid)
+
+                test_victory(victory, current_player, lbl_player,
+                        score_j1.get(), score_j2.get())
+
+                if not victory[0] and not victory[1]:
+                    current_player.set(current_player.get() % 2 +1) 
+                    show_menu(menu, btn_start, btn_middle, btn_end)
+
+                interface.pack()
 # end def
 
 def event_pass(token_prop, grid_canvas, grid, current_player):
-    cancel_move(token_prop, grid_canvas, grid)
-    current_player.set(current_player.get() % 2 + 1)
-    set_player(lbl_player, current_player.get())
+    if not victory[0] and not victory[1]:
+        cancel_move(token_prop, grid_canvas, grid)
+        current_player.set(current_player.get() % 2 + 1)
+        set_player(lbl_player, current_player.get())
 
 #=========================
 # MAIN
@@ -773,15 +840,18 @@ interface.pack()
 btn_start.config(command=lambda : 
         event_change_config_to_begin(grid, grid_canvas, 
         score_j1, score_j2,
-        lbl_j1, lbl_j2))
+        lbl_j1, lbl_j2,
+        victory))
 btn_middle.config(command=lambda : 
         event_change_config_to_middle(grid, grid_canvas, 
         score_j1, score_j2,
-        lbl_j1, lbl_j2))
+        lbl_j1, lbl_j2,
+        victory))
 btn_end.config(command=lambda : 
         event_change_config_to_end(grid, grid_canvas, 
         score_j1, score_j2,
-        lbl_j1, lbl_j2))
+        lbl_j1, lbl_j2,
+        victory))
 btn_pass.config(command=lambda :
         event_pass(token_prop, grid_canvas, grid, current_player))
 
@@ -790,6 +860,7 @@ grid_canvas.bind('<1>', lambda e: event_move_token(e, token_prop,
         grid, grid_canvas,
         score_j1, score_j2,
         lbl_j1, lbl_j2,
+        victory, lbl_player, 
         menu, current_player,
         btn_start, btn_middle, btn_end))
 
