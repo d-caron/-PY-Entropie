@@ -745,7 +745,8 @@ def cancel_move(token_prop, grid_canvas, grid):
 # end def
 
 ### Fonction suivante FR, car expressément demandée 😇
-def deplacement_isole(isolated, grid, grid_canvas, x1, y1, x2, y2):
+def deplacement_isole(token_prop, isolated, grid, grid_canvas, 
+            x1, y1, x2, y2, lbl_message):
     """
     ø paramètres :
         -> isolated : list
@@ -790,15 +791,18 @@ def deplacement_isole(isolated, grid, grid_canvas, x1, y1, x2, y2):
 # end def
 
 ### Fonction suivante FR, car expressément demandée 😇
-def deplacement_voisin(grid, grid_canvas, x1, y1, x2, y2):
+def deplacement_voisin(token_prop, grid, grid_canvas, x1, y1, x2, y2,
+            lbl_message):
     """
     ø paramètres :
+        -> token_prop : list
         -> grid : list
         -> grid_canvas : tkinter.Canvas()
         -> x1 : int
         -> y1 : int
         -> x2 : int
         -> y2 : int
+        -> lbl_message : tkinter.Label()
     ø retour :
         -> bool
     **  Tente un déplacement voisin selon les règles du jeu. Retourne
@@ -1014,7 +1018,7 @@ def event_change_config_to_middle(grid, grid_canvas,
 def event_move_token(event, token_prop, 
         grid, grid_canvas,
         score_j1, score_j2,
-        lbl_j1, lbl_j2,
+        lbl_j1, lbl_j2, lbl_message,
         victory, lbl_player,
         menu, current_player,
         btn_start, btn_middle, btn_end):
@@ -1028,6 +1032,7 @@ def event_move_token(event, token_prop,
         -> score_j2 : tkinter.IntVar()
         -> lbl_j1 : tkinter.Label()
         -> lbl_j2 : tkinter.Label()
+        -> lbl_message : tkinter.Label()
         -> victory : list
         -> lbl_player : tkinter.Label()
         -> menu : tkinter.Frame()
@@ -1065,13 +1070,15 @@ def event_move_token(event, token_prop,
             # S'il existe des pions isolés pour le joueur courant :
             if len(isolated) > 0:
                 # On tente un déplacement isolé
-                move = deplacement_isole(isolated, grid, grid_canvas,
-                        token_prop[1], token_prop[2], x, y)
+                move = deplacement_isole(token_prop, isolated, 
+                        grid, grid_canvas, token_prop[1], token_prop[2],
+                        x, y, lbl_message)
             # S'il n'existe pas de pions isolés pour le joueur courant :
             else:
                 # On tente un déplacement voisin
-                move = deplacement_voisin(grid, grid_canvas,
-                        token_prop[1], token_prop[2], x, y)
+                move = deplacement_voisin(token_prop, grid, grid_canvas,
+                        token_prop[1], token_prop[2], x, y,
+                        lbl_message)
 
             # Si un mouvement a eu lieu :
             if move:
@@ -1159,7 +1166,7 @@ btn_pass.config(command=lambda :
 grid_canvas.bind('<1>', lambda e: event_move_token(e, token_prop, 
         grid, grid_canvas,
         score_j1, score_j2,
-        lbl_j1, lbl_j2,
+        lbl_j1, lbl_j2, lbl_message,
         victory, lbl_player, 
         menu, current_player,
         btn_start, btn_middle, btn_end))
