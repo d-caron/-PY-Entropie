@@ -633,7 +633,8 @@ def test_state(grid, x, y):
         return None
 # end def
 
-def test_victory(victory, current_player, lbl_player, score_j1, score_j2):
+def test_victory(victory, current_player, lbl_player, 
+            lbl_turn, lbl_message, score_j1, score_j2):
     """
     ø paramètres :
         -> victory : list
@@ -1097,6 +1098,7 @@ def event_move_token(event, token_prop,
 
                 # On vérifie si un joueur a gagné la partie
                 test_victory(victory, current_player, lbl_player,
+                        lbl_turn, lbl_message,
                         score_j1.get(), score_j2.get())
                 
                 # Si personne n'a gagné :
