@@ -659,11 +659,13 @@ def test_victory(victory, current_player, lbl_player, score_j1, score_j2):
     # Si le joueur 1 a gagné et pas le joueur 2 :
     if victory[0] == True and victory[1] == False:
         # On déclenche la victoire du joueur 1
-        trigger_victory(1, current_player, lbl_player, grid, grid_canvas)
+        trigger_victory(1, current_player, lbl_player, lbl_turn, lbl_message,
+                grid, grid_canvas)
     # Si le joueur 2 a gagné et pas le joueur 1 :
     elif victory[1] == True and victory[0] == False:
         # On déclenche la victoire du joueur 2
-        trigger_victory(2, current_player, lbl_player, grid, grid_canvas)
+        trigger_victory(2, current_player, lbl_player, lbl_turn, lbl_message,
+                grid, grid_canvas)
 # end def
 
 # ~* Fonctions de gestions de la partie 
@@ -697,12 +699,15 @@ def calc_score(grid, score_j1, score_j2):
                     score_j2.set(score_j2.get() + 1)   
 # end def
 
-def trigger_victory(player, current_player, lbl_player, grid, grid_canvas):
+def trigger_victory(player, current_player, lbl_player, lbl_turn, lbl_message,
+            grid, grid_canvas):
     """
     ø paramètres :
         -> player : int
         -> current_player : tkinter.IntVar()
         -> lbl_player : tkinter.Label()
+        -> lbl_turn : tkinter.Label()
+        -> lbl_message : tkinter.Label()
         -> grid : list
         -> grid_canvas : tkinter.Canvas()
     ø retour :
