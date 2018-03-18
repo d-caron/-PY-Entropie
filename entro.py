@@ -715,7 +715,7 @@ def trigger_victory(player, current_player, lbl_player, grid, grid_canvas):
     lbl_player.config(text="Joueur " + str(player) + ": Victoire",
             fg="#FFFF00")
     lbl_turn.config(text="C'est fini !")
-    lbl_message.config(text="\nヾ(^▽^ヾ)\n" +
+    lbl_message.config(text="\n(ﾉ≧∇≦)ﾉ ﾐ┻━┻\n" +
             "Bravo, joueur " + str(player))
 
     # Mise en évidence des pions bloqués
