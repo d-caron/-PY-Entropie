@@ -13,9 +13,9 @@
 # ----------------------------------------------------------------------
 #
 # projet : Entropie
-# fichier : entropie.py
+# fichier : entro.py
 # Auteur : 😎 On a dit ANONYME !
-# MAJ : 18/03/18
+# MAJ : 02/04/18
 # ----------------------------------------------------------------------
 # 
 # Plan :
@@ -36,9 +36,20 @@
 # intégré de base dans python3 et la version 3 est obligatoire pour le 
 # projet.
 # (c'est marqué dans les consignes) donc pas d'excuses mécréants ! 😇
+# Il est aussi important de savoir qu'un programme ne s'exécute pas sous
+# repl.it... Ce n'est qu'un site pour tester des morceaux de codes !
 # J'ai fait pas mal d'efforts pour que le commentaire, la documentation 
 # et mes fonctions soient les plus clairs possible et j'espère que ça le 
 # sera suffisamment. 
+#
+# Enfin, pour ceux qui se demandent pourquoi tous les noms de variables
+# et les fonctions sont en anglais, je me permets une dernière remarque.
+# Vous avez déjà surement remarqué que les mots de langages sont en
+# anglais en python et dans tous les autres langages de programmation.
+# Les fonctions de bases sont en anglais, etc.
+# C'est donc cohérent pour moi de coder en anglais...
+# La documentation est de toutes façons, elle en français pour vous
+# permettre la meilleure compréhension possible de mon code.
 # ----------------------------------------------------------------------
 # 
 # © copyright : Ce code est certainement soumis à des trucs beaucoup
@@ -555,17 +566,14 @@ def test_direction(x1, y1, x2, y2):
         -> bool
     **  Teste si la direction du déplacement est valide
     """
-    # Si la direction du déplacement est haut, bas, droite, gauche
+    # Si la direction du déplacement n'est pas haut, bas, droite, gauche
     #       ou l'une des diagonales :
-    if x2 == x1 or y2 == y1 or \
-            x1 - x2 == y2 - y1 or \
-            x2 - x1 == y1 - y2 or \
-            x2 - x1 == y2 - y1 or \
-            x1 - x2 == y1 - y2:
-        return True
-    # Sinon :
-    else:
+    if x2 != x1 and y2 != y1 and \
+            max(x1, x2) - min(x1, x2) != max(y1, y2) - min(y1, y2):
         return False
+
+    # Sinon :
+    return True
 # end def
 
 def test_isolated(grid, player):
