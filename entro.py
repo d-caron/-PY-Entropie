@@ -58,6 +58,7 @@
 # ======================================================================
 
 from tkinter import *
+from random import *
 
 #=========================
 # CONSTANTES
@@ -133,6 +134,10 @@ grid_canvas = Canvas(game,  # Zone de dessin de la grille de jeu
         height=NB_ROWS*SCALE, 
         highlightthickness=0)
 
+# ~* État d'activation de l'IA
+ai = IntVar(value=0)
+    #   0 : désactivée, 1 : activée
+
 # ~* Scores joueurs 1 et 2
 score_j1 = IntVar(game, value=0)
 score_j2 = IntVar(game, value=0)
@@ -161,6 +166,12 @@ btn_pass = Button(menu,     # Bouton "passer son tour", change de joueur
         bg="#848484",
         width=14,
         highlightbackground="#424242")
+chk_ai = Checkbutton(menu,  # Check-box "Jouer contre l'IA", active l'IA
+        variable=ai,
+        text="Jouer contre l'IA",
+        bg="#242424",
+        fg="#848484",
+        highlightbackground="#242424")
 
 
 #=========================
@@ -397,6 +408,9 @@ def show_menu(menu, btn_start, btn_middle, btn_end):
     btn_middle.pack(anchor="w", pady=1)
     btn_end.pack(anchor="w", pady=1)
 
+    # Affichage de la check-box de sélection de l'IA
+    chk_ai.pack(anchor="w", pady=1)
+
     # Affichage des infos à propos du joueur courant
     show_player(lbl_player, current_player.get())
     lbl_player.pack(anchor="w", pady=1)
@@ -453,6 +467,36 @@ def show_score(lbl_j1, lbl_j2, score_j1, score_j2):
 # end def
 
 # ~* Fonctions de tests
+def can_move(grid, x, y, player):
+    if test_state(grid, x, y):
+        return False
+
+    # Vérification de l'existence d'un pion isolé
+    isolated = test_isolated(grid, player)
+    # S'il existe au moins un pion isolé :
+    if isolated != []:
+        # Pour toute la grille :
+        for row in range(len(grid)):
+            for col in range(len(grid[row])):
+                # On vérifie qu'on puisse faire un déplacement isolé
+                # chacunes des cases
+                if test_isolated_move(isolated, grid, x, y, col, row):
+                    return True
+    
+    # S'il n'y à pas de pions isolé :
+    else:
+        # Pour toute la grille :
+        for row in range(len(grid)):
+            for col in range(len(grid[row])):
+                # On vérifie qu'on puisse faire un déplacement isolé
+                # chacunes des cases
+                if test_neighbour_move(grid, x, y, col, row):
+                    return True
+    
+    # Si aucun déplacement n'est possible, on renvoi False
+    return False
+# end def
+
 ### Fonction suivante FR, car expressément demandée 😇
 def est_dans_grille(position):
     """
@@ -735,7 +779,7 @@ def trigger_victory(player, current_player, lbl_player, lbl_turn, lbl_message,
     # Mise en évidence des pions bloqués
     show_blocked(player, grid, grid_canvas)
 # end def
-
+  
 # ~* Fonctions de déplacements
 def cancel_move(token_prop, grid_canvas, grid):
     """
@@ -758,6 +802,25 @@ def cancel_move(token_prop, grid_canvas, grid):
     draw_tokens(grid_canvas, grid)
 # end def
 
+def test_isolated_move(isolated, grid, x1, y1, x2, y2):
+    # Pour chaque pion isolé allié
+    for i in range (len(isolated)):
+        # Si la case destination est à côté d'un pion isolé allié :
+        if y2-1 <= isolated[i][0] <= y2+1 and \
+                x2-1 <= isolated[i][1] <= x2+1 and \
+                isolated[i] != [y2, x2]:
+            # Si la case destination n'est pas occupée :
+            if grid[y2][x2] == 0:
+                # Si la case destination est dans une direction valide,
+                #       et que les cases entre le départ et la 
+                #       destination sont libre :
+                if test_direction(x1, y1, x2, y2) and \
+                        test_between(x1, y1, x2, y2):
+                    return True
+    
+    return False
+# end def
+
 ### Fonction suivante FR, car expressément demandée 😇
 def deplacement_isole(token_prop, isolated, grid, grid_canvas, 
             x1, y1, x2, y2, lbl_message):
@@ -776,31 +839,33 @@ def deplacement_isole(token_prop, isolated, grid, grid_canvas,
         True si le déplacement a bien été effectué, False sinon
     """
     # Pour chaque pion isolé allié
-    for i in range (len(isolated)):
-        # Si la case destination est à côté d'un pion isolé allié :
-        if y2-1 <= isolated[i][0] <= y2+1 and \
-                x2-1 <= isolated[i][1] <= x2+1 and \
-                isolated[i] != [y2, x2]:
-            # Si la case destination n'est pas occupée :
-            if grid[y2][x2] == 0:
-                # Si la case destination est dans une direction valide,
-                #       et que les cases entre le départ et la 
-                #       destination sont libre :
-                if test_direction(x1, y1, x2, y2) and \
-                        test_between(x1, y1, x2, y2):
-
-                    # On bouge le pion
-                    return move_token(token_prop, grid, x1, y1, x2, y2)
+    if test_isolated_move(isolated, grid, x1, y1, x2, y2):
+        move_token(token_prop, grid, x1, y1, x2, y2)
+        return True
         
     # Si la case destination n'est pas à côté d'un pion isolé allié:
     #       Annulation du mouvement, il y a erreur de déplacement
-    cancel_move(token_prop, grid_canvas, grid)
-    show_isolated(grid_canvas, isolated)
-    
-    # Affichage du message d'erreur
-    lbl_message.config(text="\no(*≧□≦)o" +
-            "\nVous avez des pion isolé !")
+    else:
+        cancel_move(token_prop, grid_canvas, grid)
+        show_isolated(grid_canvas, isolated)
+        
+        # Affichage du message d'erreur
+        lbl_message.config(text="\no(*≧□≦)o" +
+                "\nVous avez des pion isolé !")
 
+        return False
+# end def
+
+def test_neighbour_move(grid, x1, y1, x2, y2):
+    # S'il n'y à pas de pions sur la case destination:
+    if grid[y2][x2] == 0:
+        # Si la case destination est dans une direction valide,
+        # et que les cases entre le départ et la destination sont libre:
+        if test_direction(x1, y1, x2, y2) and \
+                test_between(x1, y1, x2, y2):
+            # On peut bouger le pion
+            return True
+    
     return False
 # end def
 
@@ -823,21 +888,18 @@ def deplacement_voisin(token_prop, grid, grid_canvas, x1, y1, x2, y2,
         True si le déplacement a bien été effectué, False sinon
     """
     # S'il n'y à pas de pions sur la case destination:
-    if grid[y2][x2] == 0:
-        # Si la case destination est dans une direction valide,
-        # et que les cases entre le départ et la destination sont libre:
-        if test_direction(x1, y1, x2, y2) and \
-                test_between(x1, y1, x2, y2):
-            # On bouge le pion
-            return move_token(token_prop, grid, x1, y1, x2, y2)
+    if test_neighbour_move(grid, x1, y1, x2, y2):
+        move_token(token_prop, grid, x1, y1, x2, y2)
+        return True
  
-    # Sinon, on annule le déplacement. Il y a une erreur de déplacement
-    cancel_move(token_prop, grid_canvas, grid)
-    # Affichage de l'erreur
-    lbl_message.config(text="\no(*≧□≦)o" +
-            "\nCette case n'est pas valide !") 
+    else:
+        # Sinon, on annule le déplacement. Il y a une erreur de déplacement
+        cancel_move(token_prop, grid_canvas, grid)
+        # Affichage de l'erreur
+        lbl_message.config(text="\no(*≧□≦)o" +
+                "\nCette case n'est pas valide !") 
 
-    return False
+        return False
 # end def
 
 def move_token(token_prop, grid, x1, y1, x2, y2):
@@ -850,9 +912,8 @@ def move_token(token_prop, grid, x1, y1, x2, y2):
         -> x2 : int
         -> y2 : int
     ø retour :
-        -> bool
+        -> None
     **  Permet de bouger un pion d'une case à une autre de la grille.
-        Retourne True si le déplacement a bien été effectué, False sinon
     """
     # Il n'y a plus de pion sélectionné
     token_prop[0] = False
@@ -860,8 +921,6 @@ def move_token(token_prop, grid, x1, y1, x2, y2):
     # On déplace le pion
     grid[y2][x2] = grid[y1][x1]
     grid[y1][x1] = 0
-
-    return True
 # end def
 
 def select_token(grid, grid_canvas, x, y, player, token_prop):
@@ -917,6 +976,65 @@ def select_token(grid, grid_canvas, x, y, player, token_prop):
             "\nCe n'est pas un de vos pions")
     
         return False
+# end def
+
+def rand_select_move(grid, x, y):
+    moves_list = []
+    # Vérification de l'existence d'un pion isolé
+    isolated = test_isolated(grid, 2)
+    # S'il existe au moins un pion isolé :
+    if isolated != []:
+        # Pour toute la grille :
+        for row in range(len(grid)):
+            for col in range(len(grid[row])):
+                # On vérifie qu'on puisse faire un déplacement isolé
+                # chacunes des cases
+                if test_isolated_move(isolated, grid, x, y, col, row):
+                    moves_list.append((row, col))
+    
+    # S'il n'y à pas de pions isolé :
+    else:
+        # Pour toute la grille :
+        for row in range(len(grid)):
+            for col in range(len(grid[row])):
+                # On vérifie qu'on puisse faire un déplacement isolé
+                # chacunes des cases
+                if test_neighbour_move(grid, x, y, col, row):
+                    moves_list.append((row, col))
+    
+    # Si au moins un déplacement est possible :
+    if moves_list != []:
+        # On choisi une case au hasard, et on la retourne
+        cell = randint(0, len(moves_list)-1)
+        return moves_list[cell]
+    
+    # Si aucun déplacement n'est possible, on renvoi une liste vide
+    return ()
+# end def
+
+def rand_select_token(grid, player):
+    tokens_list = []
+    # Pour toute la grille :
+    for row in range(len(grid)):
+        for col in range(len(grid[row])):
+            # Si le jeton appartient aux joueur
+            # et qu'il peut être joué :
+            if grid[row][col] == player and \
+                    can_move(grid, col, row, player):
+                # On l'ajoute à la liste des pions jouable
+                tokens_list.append((row, col))
+
+    # On choisi un pion au hasard et on le retourne
+    token = randint(0, len(tokens_list)-1)
+    print(tokens_list)
+    return tokens_list[token]
+# end def
+
+def auto_play(token_prop, grid):
+    token = rand_select_token(grid, 2)
+    cell = rand_select_move(grid, token[1], token[0])
+
+    move_token(token_prop, grid, token[1], token[0], cell[1], cell[0])
 # end def
 
 #=========================
@@ -1115,6 +1233,31 @@ def event_move_token(event, token_prop,
                     #       le menu
                     current_player.set(current_player.get() % 2 +1) 
                     show_menu(menu, btn_start, btn_middle, btn_end)
+                    
+                    if ai.get() == 1:
+                        interface.pack()
+
+                        auto_play(token_prop, grid)
+
+                        # On calcule le score
+                        calc_score(grid, score_j1, score_j2)
+                        show_score(lbl_j1, lbl_j2, score_j1, score_j2)
+
+                        # On re-dessine la grille et les pions
+                        draw_grid(grid_canvas, grid)
+                        draw_tokens(grid_canvas, grid)
+
+                        # On vérifie si un joueur a gagné la partie
+                        test_victory(victory, current_player, lbl_player,
+                                lbl_turn, lbl_message,
+                                score_j1.get(), score_j2.get())
+                        
+                        # Si personne n'a gagné :
+                        if not victory[0] and not victory[1]:
+                            # On change de joueur courant et on met à jour 
+                            #       le menu
+                            current_player.set(current_player.get() % 2 +1) 
+                            show_menu(menu, btn_start, btn_middle, btn_end)
 
                 interface.pack()
 # end def
@@ -1142,8 +1285,18 @@ def event_pass(token_prop, grid, grid_canvas, current_player):
         show_player(lbl_player, current_player.get())
 # end def
 
+# ~* évènement d'activation de l'IA
+def event_enable_ai():
+    if ai.get() == True:
+        ai.set(False)
+    else:
+        ai.set(True)
+# end def
+
 #=========================
 # MAIN
+
+seed()
 
 # Initialisation et affichage de la grille
 # et de l'interface.
@@ -1175,6 +1328,8 @@ btn_end.config(command=lambda :
 # Passer son tour
 btn_pass.config(command=lambda :
         event_pass(token_prop, grid, grid_canvas, current_player))
+# Activation / Désactivation de l'IA
+chk_ai.config
 
 # Ajout de l'évènement du clic sur la grille pour sélectionner ou
 # déplacer un pion.
