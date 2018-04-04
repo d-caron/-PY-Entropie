@@ -59,6 +59,7 @@
 
 from tkinter import *
 from random import *
+from time import *
 
 #=========================
 # CONSTANTES
@@ -752,6 +753,25 @@ def calc_score(grid, score_j1, score_j2):
                     score_j2.set(score_j2.get() + 1)   
 # end def
 
+def change_current_player(token_prop, grid, grid_canvas, ai,
+        menu, btn_start, btn_middle, btn_end,
+        score_j1, score_j2,
+        lbl_j1, lbl_j2,
+        current_player, lbl_player,
+        lbl_turn, lbl_message):
+    current_player.set(current_player.get() % 2 +1) 
+
+    if current_player.get() == 2 and ai.get() == 1:
+        auto_play(token_prop, grid, grid_canvas,
+                menu, btn_start, btn_middle, btn_end,
+                score_j1, score_j2,
+                lbl_j1, lbl_j2,
+                current_player, lbl_player,
+                lbl_turn, lbl_message)
+    
+    show_menu(menu, btn_start, btn_middle, btn_end)
+# end def
+
 def trigger_victory(player, current_player, lbl_player, lbl_turn, lbl_message,
             grid, grid_canvas):
     """
@@ -1030,11 +1050,44 @@ def rand_select_token(grid, player):
     return tokens_list[token]
 # end def
 
-def auto_play(token_prop, grid):
+def auto_play(token_prop, grid, grid_canvas,
+        menu, btn_start, btn_middle, btn_end,
+        score_j1, score_j2,
+        lbl_j1, lbl_j2,
+        current_player, lbl_player,
+        lbl_turn, lbl_message):
     token = rand_select_token(grid, 2)
+    # On met le pion en évidence en l'entourant d'un rectangle
+    grid_canvas.create_rectangle(token[1]*SCALE, token[0]*SCALE,
+            token[1]*SCALE+SCALE, token[0]*SCALE+SCALE, 
+            outline="#7FFF00", width="3")
     cell = rand_select_move(grid, token[1], token[0])
-
+    interface.pack()
+    sleep(1)
+    
     move_token(token_prop, grid, token[1], token[0], cell[1], cell[0])
+
+    # On calcule le score
+    calc_score(grid, score_j1, score_j2)
+    show_score(lbl_j1, lbl_j2, score_j1, score_j2)
+
+    # On re-dessine la grille et les pions
+    draw_grid(grid_canvas, grid)
+    draw_tokens(grid_canvas, grid)
+
+    # On vérifie si un joueur a gagné la partie
+    test_victory(victory, current_player, lbl_player,
+            lbl_turn, lbl_message,
+            score_j1.get(), score_j2.get())
+    
+    # Si personne n'a gagné :
+    if not victory[0] and not victory[1]:
+        # On change de joueur courant et on met à jour 
+        #       le menu
+        current_player.set(current_player.get() % 2 +1) 
+        show_menu(menu, btn_start, btn_middle, btn_end)
+    
+    
 # end def
 
 #=========================
@@ -1147,7 +1200,7 @@ def event_change_config_to_middle(grid, grid_canvas,
 # end def
 
 # ~* évènement de déplacement de pion
-def event_move_token(event, token_prop, 
+def event_move_token(event, token_prop, ai,
         grid, grid_canvas,
         score_j1, score_j2,
         lbl_j1, lbl_j2, lbl_message,
@@ -1227,39 +1280,19 @@ def event_move_token(event, token_prop,
                         lbl_turn, lbl_message,
                         score_j1.get(), score_j2.get())
                 
+                interface.pack()
+                
                 # Si personne n'a gagné :
                 if not victory[0] and not victory[1]:
                     # On change de joueur courant et on met à jour 
                     #       le menu
-                    current_player.set(current_player.get() % 2 +1) 
-                    show_menu(menu, btn_start, btn_middle, btn_end)
+                    change_current_player(token_prop, grid, grid_canvas, ai,
+                            menu, btn_start, btn_middle, btn_end,
+                            score_j1, score_j2,
+                            lbl_j1, lbl_j2,
+                            current_player, lbl_player,
+                            lbl_turn, lbl_message)
                     
-                    if ai.get() == 1:
-                        interface.pack()
-
-                        auto_play(token_prop, grid)
-
-                        # On calcule le score
-                        calc_score(grid, score_j1, score_j2)
-                        show_score(lbl_j1, lbl_j2, score_j1, score_j2)
-
-                        # On re-dessine la grille et les pions
-                        draw_grid(grid_canvas, grid)
-                        draw_tokens(grid_canvas, grid)
-
-                        # On vérifie si un joueur a gagné la partie
-                        test_victory(victory, current_player, lbl_player,
-                                lbl_turn, lbl_message,
-                                score_j1.get(), score_j2.get())
-                        
-                        # Si personne n'a gagné :
-                        if not victory[0] and not victory[1]:
-                            # On change de joueur courant et on met à jour 
-                            #       le menu
-                            current_player.set(current_player.get() % 2 +1) 
-                            show_menu(menu, btn_start, btn_middle, btn_end)
-
-                interface.pack()
 # end def
 
 # ~* évènement de passage de tour
@@ -1281,16 +1314,13 @@ def event_pass(token_prop, grid, grid_canvas, current_player):
 
         # On change le joueur courant et on met à jour l'affichage 
         #       du menu
-        current_player.set(current_player.get() % 2 + 1)
+        change_current_player(token_prop, grid, grid_canvas, ai,
+                menu, btn_start, btn_middle, btn_end,
+                score_j1, score_j2,
+                lbl_j1, lbl_j2,
+                current_player, lbl_player,
+                lbl_turn, lbl_message)
         show_player(lbl_player, current_player.get())
-# end def
-
-# ~* évènement d'activation de l'IA
-def event_enable_ai():
-    if ai.get() == True:
-        ai.set(False)
-    else:
-        ai.set(True)
 # end def
 
 #=========================
@@ -1328,12 +1358,10 @@ btn_end.config(command=lambda :
 # Passer son tour
 btn_pass.config(command=lambda :
         event_pass(token_prop, grid, grid_canvas, current_player))
-# Activation / Désactivation de l'IA
-chk_ai.config
 
 # Ajout de l'évènement du clic sur la grille pour sélectionner ou
 # déplacer un pion.
-grid_canvas.bind('<1>', lambda e: event_move_token(e, token_prop, 
+grid_canvas.bind('<1>', lambda e: event_move_token(e, token_prop, ai,
         grid, grid_canvas,
         score_j1, score_j2,
         lbl_j1, lbl_j2, lbl_message,
