@@ -15,7 +15,7 @@
 # projet : Entropie
 # fichier : entro.py
 # Auteur : 😎 On a dit ANONYME !
-# MAJ : 02/04/18
+# MAJ : 07/04/18
 # ----------------------------------------------------------------------
 # 
 # Plan :
@@ -31,25 +31,16 @@
 #   ø MAIN (CODE PRINCIPAL)
 # ----------------------------------------------------------------------
 #
-# Remarques : Ceci est un petit mot à l'attention de mes correcteurs.
-# J'ai codé ce jeu avec la bibliothèque tkinter. C'est une bibliothèque
-# intégré de base dans python3 et la version 3 est obligatoire pour le 
-# projet.
-# (c'est marqué dans les consignes) donc pas d'excuses mécréants ! 😇
-# Il est aussi important de savoir qu'un programme ne s'exécute pas sous
-# repl.it... Ce n'est qu'un site pour tester des morceaux de codes !
-# J'ai fait pas mal d'efforts pour que le commentaire, la documentation 
-# et mes fonctions soient les plus clairs possible et j'espère que ça le 
-# sera suffisamment. 
+# Remarques :
+# J'ai codé ce jeu avec la bibliothèque tkinter. Pour exécuter ce 
+# programme, vous aurez besoin de python en version 3 minimum.
+# Documentation tkinter : http://www.effbot.org/tkinterbook/
+# Téléchargement de python3 : https://www.python.org/downloads/
 #
-# Enfin, pour ceux qui se demandent pourquoi tous les noms de variables
-# et les fonctions sont en anglais, je me permets une dernière remarque.
-# Vous avez déjà surement remarqué que les mots de langages sont en
-# anglais en python et dans tous les autres langages de programmation.
-# Les fonctions de bases sont en anglais, etc.
-# C'est donc cohérent pour moi de coder en anglais...
-# La documentation est de toutes façons, elle en français pour vous
-# permettre la meilleure compréhension possible de mon code.
+# /!\ Ce programme ne s'exécute pas sous repl.it car il nécessite une 
+# interface graphique.
+# Pour lancer le programme : double cliquez sur l'exécutable entro.py
+# ou lancez le via un interpréteur de commande.
 # ----------------------------------------------------------------------
 # 
 # © copyright : Ce code est certainement soumis à des trucs beaucoup
@@ -57,9 +48,10 @@
 # l'auteur ait le courage de vous en tenir rigueur.
 # ======================================================================
 
-from tkinter import *
-from random import *
-from time import sleep
+from tkinter import *   # Import de la bibliothèque graphique Tkinter
+from random import *    # Import de la bibliothèque random
+from time import sleep  # Import de la fonction sleep de la 
+                        #       bibliothèque de gestion du temps
 
 #=========================
 # CONSTANTES
@@ -189,11 +181,11 @@ chk_ai = Checkbutton(menu,  # Check-box "Jouer contre l'IA", active l'IA
 |___________________| btn_start    |
 |                   | btn_middle   |
 |                   | btn_end      |
-| grid_frame        | lbl_player   |
+| grid_frame        | chc_ai       |
+|                   | lbl_player   |
 |                   | lbl_turn     |
-|                   | btn_pass     |
-|___________________| lbl_message  |
-| lbl_j1            |              |
+|___________________| btn_pass     |
+| lbl_j1            | lbl_message  |
 |___________________|______________|             
 """
 
@@ -387,13 +379,22 @@ def show_isolated(grid_canvas, isolated):
                 outline="red", width="3")
 # end def
 
-def show_menu(menu, btn_start, btn_middle, btn_end):
+def show_menu(menu, btn_start, btn_middle, btn_end, btn_pass, chk_ai,
+        lbl_config, lbl_player, lbl_turn, lbl_message,
+        current_player):
     """
     ø paramètres :
         -> menu : tkinter.Frame()
         -> btn_start : tkinter.Button()
         -> btn_middle : tkinter.Button()
         -> btn_end : tkinter.Button()
+        -> btn_pass : tkinter.Button()
+        -> chk_ai : tkinter.Checkbutton()
+        -> lbl_config : tkinter.Label()
+        -> lbl_player : tkinter.Label()
+        -> lbl_turn : tkinter.Label()
+        -> lbl_message : tkitner.Label()
+        -> current_player : tkinter.IntVar()
     ø retour :
         -> None
     **  Affichage de toute la colone droite de l'interface 
@@ -423,7 +424,6 @@ def show_menu(menu, btn_start, btn_middle, btn_end):
     # Affichage du message destiné au joueur
     #       (Erreurs, félicitations en cas de victoire)
     lbl_message.config(text="\nヾ(^▽^ヾ)")
-
     lbl_message.pack(anchor="w", pady=1)
 # end def
 
@@ -469,6 +469,17 @@ def show_score(lbl_j1, lbl_j2, score_j1, score_j2):
 
 # ~* Fonctions de tests
 def can_token_move(grid, x, y, player):
+    '''
+    ø parametres :
+        -> grid : list
+        -> x : int
+        -> y : int
+        -> player : int
+    ø retour :
+        -> bool
+    **  Teste si un pion peut se déplacer quelque part 
+        selon les règles du jeu
+    '''
     if test_state(grid, x, y):
         return False
 
@@ -839,7 +850,9 @@ def change_current_player(window, token_prop, grid, grid_canvas, ai,
                 current_player, lbl_player,
                 lbl_turn, lbl_message)
     
-    show_menu(menu, btn_start, btn_middle, btn_end)
+    show_menu(menu, btn_start, btn_middle, btn_end, btn_pass, chk_ai,
+            lbl_config, lbl_player, lbl_turn, lbl_message,
+            current_player)
 # end def
 
 def trigger_victory(player, current_player, lbl_player, lbl_turn, lbl_message,
@@ -1168,9 +1181,9 @@ def auto_play(window, token_prop, grid, grid_canvas, ai,
                 lbl_j1, lbl_j2,
                 current_player, lbl_player,
                 lbl_turn, lbl_message)
-        show_menu(menu, btn_start, btn_middle, btn_end)
-    
-    
+        show_menu(menu, btn_start, btn_middle, btn_end, btn_pass, chk_ai,
+                lbl_config, lbl_player, lbl_turn, lbl_message,
+                current_player)
 # end def
 
 #=========================
@@ -1408,13 +1421,16 @@ def event_pass(window, token_prop, grid, grid_canvas, current_player):
 #=========================
 # MAIN
 
+# Cette ligne sers pour l'utilisation du random dans le reste du code.
 seed()
 
 # Initialisation et affichage de la grille
 # et de l'interface.
 grid = init_grid_begin()
 show_game(game, lbl_j2, grid_canvas, lbl_j1, grid)
-show_menu(menu, btn_start, btn_middle, btn_end)
+show_menu(menu, btn_start, btn_middle, btn_end, btn_pass, chk_ai,
+        lbl_config, lbl_player, lbl_turn, lbl_message,
+        current_player)
 
 interface.pack()
 
