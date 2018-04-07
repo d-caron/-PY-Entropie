@@ -469,7 +469,7 @@ def show_score(lbl_j1, lbl_j2, score_j1, score_j2):
 
 # ~* Fonctions de tests
 def can_token_move(grid, x, y, player):
-    '''
+    """
     ø parametres :
         -> grid : list
         -> x : int
@@ -479,7 +479,7 @@ def can_token_move(grid, x, y, player):
         -> bool
     **  Teste si un pion peut se déplacer quelque part 
         selon les règles du jeu
-    '''
+    """
     if test_state(grid, x, y):
         return False
 
@@ -510,8 +510,19 @@ def can_token_move(grid, x, y, player):
 # end def
 
 def can_player_move(grid, player):
+    """
+    ø parametres :
+        -> grid : list
+        -> player : int
+    ø retour :
+        -> bool
+    **  Teste si un joueur peut se déplacer quelque part 
+        selon les règles du jeu
+    """
+    # Pour toute la grille :
     for row in range(NB_ROWS):
         for col in range(NB_COLS):
+            # On vérifie que le joueur puisse jouer un de ses pions
             if grid[row][col] == player and\
                     can_token_move(grid, col, row, player):
                 return True
@@ -519,7 +530,46 @@ def can_player_move(grid, player):
     return False
 # end def
 
+def test_isolated(grid, player):
+    """
+    ø paramètres :
+        -> grid : list
+        -> player : int
+    ø retour :
+        -> list
+    **  Teste pour chaque case de la grille, s'il existe des pions
+        isolés appartenant au joueur courant.
+    """
+    isolated = []
+    # Pour chaque ligne :
+    for row in range(NB_ROWS):
+        # Pour chaque colonne :
+        for col in range(NB_COLS):
+            # S'il existe un pion du joueur courant sur la case,
+            #       et qu'il est considéré comme isolés
+            if grid[row][col] == player and \
+                    test_state(grid, col, row) == "isolated":
+                # On l'ajoute à la liste des pions isolés
+                isolated.append([row, col])
+    
+    # Retour de la liste des pions isolés
+    return isolated
+# end def
+
 def test_isolated_move(isolated, grid, x1, y1, x2, y2):
+    """
+    ø parametres :
+        -> isolated : list
+        -> grid : list
+        -> y1 : int
+        -> x2 : int
+        -> y2 : int
+        -> x1 : int
+    ø retour :
+        -> bool
+    **  Teste si un pion peut effectuer un déplacement isolé vers une 
+        cible selon les règles du jeu
+    """
     # Pour chaque pion isolé allié
     for i in range (len(isolated)):
         # Si la case destination est à côté d'un pion isolé allié :
@@ -532,7 +582,7 @@ def test_isolated_move(isolated, grid, x1, y1, x2, y2):
                 #       et que les cases entre le départ et la 
                 #       destination sont libre :
                 if test_direction(x1, y1, x2, y2) and \
-                        test_between(x1, y1, x2, y2):
+                        test_between(grid, x1, y1, x2, y2):
                     return True
     
     return False
@@ -544,7 +594,7 @@ def test_neighbour_move(grid, x1, y1, x2, y2):
         # Si la case destination est dans une direction valide,
         # et que les cases entre le départ et la destination sont libre:
         if test_direction(x1, y1, x2, y2) and \
-                test_between(x1, y1, x2, y2):
+                test_between(grid, x1, y1, x2, y2):
             # On peut bouger le pion
             return True
     
@@ -588,9 +638,10 @@ def est_dans_grille(position):
         return False
 # end def
 
-def test_between(x1, y1, x2, y2):
+def test_between(grid, x1, y1, x2, y2):
     """
     ø paramètres :
+        -> grid : list
         -> x1 : int
         -> y1 : int
         -> x2 : int
@@ -672,32 +723,6 @@ def test_direction(x1, y1, x2, y2):
 
     # Sinon :
     return True
-# end def
-
-def test_isolated(grid, player):
-    """
-    ø paramètres :
-        -> grid : list
-        -> player : int
-    ø retour :
-        -> list
-    **  Teste pour chaque case de la grille, s'il existe des pions
-        isolés appartenant au joueur courant.
-    """
-    isolated = []
-    # Pour chaque ligne :
-    for row in range(NB_ROWS):
-        # Pour chaque colonne :
-        for col in range(NB_COLS):
-            # S'il existe un pion du joueur courant sur la case,
-            #       et qu'il est considéré comme isolés
-            if grid[row][col] == player and \
-                    test_state(grid, col, row) == "isolated":
-                # On l'ajoute à la liste des pions isolés
-                isolated.append([row, col])
-    
-    # Retour de la liste des pions isolés
-    return isolated
 # end def
 
 def test_state(grid, x, y):
@@ -1424,52 +1449,53 @@ def event_pass(window, token_prop, grid, grid_canvas, current_player):
 # Cette ligne sers pour l'utilisation du random dans le reste du code.
 seed()
 
-# Initialisation et affichage de la grille
-# et de l'interface.
-grid = init_grid_begin()
-show_game(game, lbl_j2, grid_canvas, lbl_j1, grid)
-show_menu(menu, btn_start, btn_middle, btn_end, btn_pass, chk_ai,
-        lbl_config, lbl_player, lbl_turn, lbl_message,
-        current_player)
+if __name__ == '__main__':
+    # Initialisation et affichage de la grille
+    # et de l'interface.
+    grid = init_grid_begin()
+    show_game(game, lbl_j2, grid_canvas, lbl_j1, grid)
+    show_menu(menu, btn_start, btn_middle, btn_end, btn_pass, chk_ai,
+            lbl_config, lbl_player, lbl_turn, lbl_message,
+            current_player)
 
-interface.pack()
+    interface.pack()
 
-# Ajout des évènements aux boutons.
-# Passage à la configuration début de partie
-btn_start.config(command=lambda : 
-        event_change_config_to_begin(grid, grid_canvas, 
-        score_j1, score_j2,
-        lbl_j1, lbl_j2, lbl_message,
-        victory))
-# Passage à la configuration milieu de partie
-btn_middle.config(command=lambda : 
-        event_change_config_to_middle(grid, grid_canvas, 
-        score_j1, score_j2,
-        lbl_j1, lbl_j2, lbl_message,
-        victory))
-# Passage à la configuration fin de partie
-btn_end.config(command=lambda : 
-        event_change_config_to_end(grid, grid_canvas, 
-        score_j1, score_j2,
-        lbl_j1, lbl_j2, lbl_message,
-        victory))
-# Passer son tour
-btn_pass.config(command=lambda :
-        event_pass(window, token_prop, grid, grid_canvas, current_player))
+    # Ajout des évènements aux boutons.
+    # Passage à la configuration début de partie
+    btn_start.config(command=lambda : 
+            event_change_config_to_begin(grid, grid_canvas, 
+            score_j1, score_j2,
+            lbl_j1, lbl_j2, lbl_message,
+            victory))
+    # Passage à la configuration milieu de partie
+    btn_middle.config(command=lambda : 
+            event_change_config_to_middle(grid, grid_canvas, 
+            score_j1, score_j2,
+            lbl_j1, lbl_j2, lbl_message,
+            victory))
+    # Passage à la configuration fin de partie
+    btn_end.config(command=lambda : 
+            event_change_config_to_end(grid, grid_canvas, 
+            score_j1, score_j2,
+            lbl_j1, lbl_j2, lbl_message,
+            victory))
+    # Passer son tour
+    btn_pass.config(command=lambda :
+            event_pass(window, token_prop, grid, grid_canvas, current_player))
 
-# Ajout de l'évènement du clic sur la grille pour sélectionner ou
-# déplacer un pion.
-grid_canvas.bind('<1>', lambda e: event_move_token(window, e, token_prop, ai,
-        grid, grid_canvas,
-        score_j1, score_j2,
-        lbl_j1, lbl_j2, lbl_message,
-        victory, lbl_player, 
-        menu, current_player,
-        btn_start, btn_middle, btn_end))
+    # Ajout de l'évènement du clic sur la grille pour sélectionner ou
+    # déplacer un pion.
+    grid_canvas.bind('<1>', lambda e: event_move_token(window, e, token_prop, ai,
+            grid, grid_canvas,
+            score_j1, score_j2,
+            lbl_j1, lbl_j2, lbl_message,
+            victory, lbl_player, 
+            menu, current_player,
+            btn_start, btn_middle, btn_end))
 
-# Renommage de la fenêtre
-window.title("Entro.py")
-# fix de la taille de la fenêtre
-window.resizable(False, False)
-# Affichage de la fenêtre
-window.mainloop()
+    # Renommage de la fenêtre
+    window.title("Entro.py")
+    # fix de la taille de la fenêtre
+    window.resizable(False, False)
+    # Affichage de la fenêtre
+    window.mainloop()
