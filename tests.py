@@ -37,4 +37,4 @@
 # l'auteur ait le courage de vous en tenir rigueur.
 # ======================================================================
 
-from entropy import grid
+from entro import grid
