@@ -240,11 +240,11 @@ def init_grid_middle():
         -> list
     **  Retourne une grille en configuration "millieu de partie"
     """
-    return [[2, 1, 2, 1, 2],
-            [2, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1],
-            [1, 2, 1, 0, 2],
-            [1, 0, 2, 0, 1]]  
+    return [[1, 2, 1, 2, 1],
+            [0, 0, 1, 0, 0],
+            [1, 0, 0, 0, 2],
+            [0, 2, 2, 0, 1],
+            [2, 1, 0, 0, 2]]  
 # end def 
 
 # ~* Fonctions de dessin
@@ -468,7 +468,7 @@ def show_score(lbl_j1, lbl_j2, score_j1, score_j2):
 # end def
 
 # ~* Fonctions de tests
-def can_move(grid, x, y, player):
+def can_token_move(grid, x, y, player):
     if test_state(grid, x, y):
         return False
 
@@ -477,8 +477,8 @@ def can_move(grid, x, y, player):
     # S'il existe au moins un pion isolé :
     if isolated != []:
         # Pour toute la grille :
-        for row in range(len(grid)):
-            for col in range(len(grid[row])):
+        for row in range(NB_ROWS):
+            for col in range(NB_COLS):
                 # On vérifie qu'on puisse faire un déplacement isolé
                 # chacunes des cases
                 if test_isolated_move(isolated, grid, x, y, col, row):
@@ -487,14 +487,56 @@ def can_move(grid, x, y, player):
     # S'il n'y à pas de pions isolé :
     else:
         # Pour toute la grille :
-        for row in range(len(grid)):
-            for col in range(len(grid[row])):
+        for row in range(NB_ROWS):
+            for col in range(NB_COLS):
                 # On vérifie qu'on puisse faire un déplacement isolé
                 # chacunes des cases
                 if test_neighbour_move(grid, x, y, col, row):
                     return True
     
     # Si aucun déplacement n'est possible, on renvoi False
+    return False
+# end def
+
+def can_player_move(grid, player):
+    for row in range(NB_ROWS):
+        for col in range(NB_COLS):
+            if grid[row][col] == player and\
+                    can_token_move(grid, col, row, player):
+                return True
+
+    return False
+# end def
+
+def test_isolated_move(isolated, grid, x1, y1, x2, y2):
+    # Pour chaque pion isolé allié
+    for i in range (len(isolated)):
+        # Si la case destination est à côté d'un pion isolé allié :
+        if y2-1 <= isolated[i][0] <= y2+1 and \
+                x2-1 <= isolated[i][1] <= x2+1 and \
+                isolated[i] != [y2, x2]:
+            # Si la case destination n'est pas occupée :
+            if grid[y2][x2] == 0:
+                # Si la case destination est dans une direction valide,
+                #       et que les cases entre le départ et la 
+                #       destination sont libre :
+                if test_direction(x1, y1, x2, y2) and \
+                        test_between(x1, y1, x2, y2):
+                    return True
+    
+    return False
+# end def
+
+def test_neighbour_move(grid, x1, y1, x2, y2):
+    # S'il n'y à pas de pions sur la case destination:
+    if grid[y2][x2] == 0:
+        # Si la case destination est dans une direction valide,
+        # et que les cases entre le départ et la destination sont libre:
+        if test_direction(x1, y1, x2, y2) and \
+                test_between(x1, y1, x2, y2):
+            # On peut bouger le pion
+            return True
+    
     return False
 # end def
 
@@ -720,6 +762,19 @@ def test_victory(victory, current_player, lbl_player,
         # On déclenche la victoire du joueur 2
         trigger_victory(2, current_player, lbl_player, lbl_turn, lbl_message,
                 grid, grid_canvas)
+    else:
+        test_draw(victory, current_player, 
+            lbl_player, lbl_turn, lbl_message,
+            grid, grid_canvas)
+# end def
+
+def test_draw(victory, current_player, 
+            lbl_player, lbl_turn, lbl_message,
+            grid, grid_canvas):
+    if victory[0] == True and victory[1] == True:
+        # On déclenche l'égalité
+        trigger_draw(lbl_player, lbl_turn, lbl_message,
+                grid, grid_canvas)
 # end def
 
 # ~* Fonctions de gestions de la partie 
@@ -753,7 +808,7 @@ def calc_score(grid, score_j1, score_j2):
                     score_j2.set(score_j2.get() + 1)   
 # end def
 
-def change_current_player(token_prop, grid, grid_canvas, ai,
+def change_current_player(window, token_prop, grid, grid_canvas, ai,
         menu, btn_start, btn_middle, btn_end,
         score_j1, score_j2,
         lbl_j1, lbl_j2,
@@ -761,8 +816,23 @@ def change_current_player(token_prop, grid, grid_canvas, ai,
         lbl_turn, lbl_message):
     current_player.set(current_player.get() % 2 +1) 
 
+    if not can_player_move(grid, current_player.get()):
+        lbl_message.config(text="\nヽ(;´Д｀)ﾉ\n" +
+                "Joueur " + str(current_player.get()) + 
+                " ne peut pas jouer...")
+        
+        window.update()
+        sleep(1)
+        
+        skip_turn(window, token_prop, grid, grid_canvas, ai,
+            menu, btn_start, btn_middle, btn_end,
+            score_j1, score_j2,
+            lbl_j1, lbl_j2,
+            current_player, lbl_player,
+            lbl_turn, lbl_message)
+
     if current_player.get() == 2 and ai.get() == 1:
-        auto_play(token_prop, grid, grid_canvas,
+        auto_play(window, token_prop, grid, grid_canvas, ai,
                 menu, btn_start, btn_middle, btn_end,
                 score_j1, score_j2,
                 lbl_j1, lbl_j2,
@@ -799,7 +869,39 @@ def trigger_victory(player, current_player, lbl_player, lbl_turn, lbl_message,
     # Mise en évidence des pions bloqués
     show_blocked(player, grid, grid_canvas)
 # end def
-  
+
+def trigger_draw(lbl_player, lbl_turn, lbl_message,
+            grid, grid_canvas):
+    lbl_player.config(text="Égalité",
+            fg="#FFFF00")
+    lbl_turn.config(text="C'est fini !")
+    lbl_message.config(text="\nv(´-ι_-｀)v\n" +
+            "Pas de gagnant... ")
+
+    # Mise en évidence des pions bloqués
+    show_blocked(1, grid, grid_canvas)
+    show_blocked(2, grid, grid_canvas)
+# end def
+
+def skip_turn(window, token_prop, grid, grid_canvas, ai,
+        menu, btn_start, btn_middle, btn_end,
+        score_j1, score_j2,
+        lbl_j1, lbl_j2,
+        current_player, lbl_player,
+        lbl_turn, lbl_message):
+    cancel_move(token_prop, grid_canvas, grid)
+
+    # On change le joueur courant et on met à jour l'affichage 
+    #       du menu
+    change_current_player(window, token_prop, grid, grid_canvas, ai,
+            menu, btn_start, btn_middle, btn_end,
+            score_j1, score_j2,
+            lbl_j1, lbl_j2,
+            current_player, lbl_player,
+            lbl_turn, lbl_message)
+    show_player(lbl_player, current_player.get())
+# end def
+
 # ~* Fonctions de déplacements
 def cancel_move(token_prop, grid_canvas, grid):
     """
@@ -820,25 +922,6 @@ def cancel_move(token_prop, grid_canvas, grid):
     # On re-dessine la grille et les pions
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
-# end def
-
-def test_isolated_move(isolated, grid, x1, y1, x2, y2):
-    # Pour chaque pion isolé allié
-    for i in range (len(isolated)):
-        # Si la case destination est à côté d'un pion isolé allié :
-        if y2-1 <= isolated[i][0] <= y2+1 and \
-                x2-1 <= isolated[i][1] <= x2+1 and \
-                isolated[i] != [y2, x2]:
-            # Si la case destination n'est pas occupée :
-            if grid[y2][x2] == 0:
-                # Si la case destination est dans une direction valide,
-                #       et que les cases entre le départ et la 
-                #       destination sont libre :
-                if test_direction(x1, y1, x2, y2) and \
-                        test_between(x1, y1, x2, y2):
-                    return True
-    
-    return False
 # end def
 
 ### Fonction suivante FR, car expressément demandée 😇
@@ -874,19 +957,6 @@ def deplacement_isole(token_prop, isolated, grid, grid_canvas,
                 "\nVous avez des pion isolé !")
 
         return False
-# end def
-
-def test_neighbour_move(grid, x1, y1, x2, y2):
-    # S'il n'y à pas de pions sur la case destination:
-    if grid[y2][x2] == 0:
-        # Si la case destination est dans une direction valide,
-        # et que les cases entre le départ et la destination sont libre:
-        if test_direction(x1, y1, x2, y2) and \
-                test_between(x1, y1, x2, y2):
-            # On peut bouger le pion
-            return True
-    
-    return False
 # end def
 
 ### Fonction suivante FR, car expressément demandée 😇
@@ -985,7 +1055,7 @@ def select_token(grid, grid_canvas, x, y, player, token_prop):
             #       sélectionné
             lbl_message.config(text="\no(*≧□≦)o" +
             "\nCe pion ne peut pas bouger," +
-            "\nil est soit isolé, soit bloqué.")
+            "\nil est isolé ou bloqué")
 
             return False
 
@@ -1005,8 +1075,8 @@ def rand_select_move(grid, x, y):
     # S'il existe au moins un pion isolé :
     if isolated != []:
         # Pour toute la grille :
-        for row in range(len(grid)):
-            for col in range(len(grid[row])):
+        for row in range(NB_ROWS):
+            for col in range(NB_COLS):
                 # On vérifie qu'on puisse faire un déplacement isolé
                 # chacunes des cases
                 if test_isolated_move(isolated, grid, x, y, col, row):
@@ -1015,8 +1085,8 @@ def rand_select_move(grid, x, y):
     # S'il n'y à pas de pions isolé :
     else:
         # Pour toute la grille :
-        for row in range(len(grid)):
-            for col in range(len(grid[row])):
+        for row in range(NB_ROWS):
+            for col in range(NB_COLS):
                 # On vérifie qu'on puisse faire un déplacement isolé
                 # chacunes des cases
                 if test_neighbour_move(grid, x, y, col, row):
@@ -1035,22 +1105,21 @@ def rand_select_move(grid, x, y):
 def rand_select_token(grid, player):
     tokens_list = []
     # Pour toute la grille :
-    for row in range(len(grid)):
-        for col in range(len(grid[row])):
+    for row in range(NB_ROWS):
+        for col in range(NB_COLS):
             # Si le jeton appartient aux joueur
             # et qu'il peut être joué :
             if grid[row][col] == player and \
-                    can_move(grid, col, row, player):
+                    can_token_move(grid, col, row, player):
                 # On l'ajoute à la liste des pions jouable
                 tokens_list.append((row, col))
 
     # On choisi un pion au hasard et on le retourne
     token = randint(0, len(tokens_list)-1)
-    print(tokens_list)
     return tokens_list[token]
 # end def
 
-def auto_play(token_prop, grid, grid_canvas,
+def auto_play(window, token_prop, grid, grid_canvas, ai,
         menu, btn_start, btn_middle, btn_end,
         score_j1, score_j2,
         lbl_j1, lbl_j2,
@@ -1058,6 +1127,8 @@ def auto_play(token_prop, grid, grid_canvas,
         lbl_turn, lbl_message):
     token = rand_select_token(grid, 2)
 
+    # Attente de 1/2 seconde
+    # pour laisser le temps au joueur de voir l'action
     window.update()
     sleep(0.5)
 
@@ -1067,6 +1138,8 @@ def auto_play(token_prop, grid, grid_canvas,
             outline="#7FFF00", width="3")
     cell = rand_select_move(grid, token[1], token[0])
 
+    # Attente de 1 seconde
+    # pour laisser le temps au joueur de voir l'action
     window.update()
     sleep(1)
 
@@ -1089,7 +1162,12 @@ def auto_play(token_prop, grid, grid_canvas,
     if not victory[0] and not victory[1]:
         # On change de joueur courant et on met à jour 
         #       le menu
-        current_player.set(current_player.get() % 2 +1) 
+        change_current_player(window, token_prop, grid, grid_canvas, ai,
+                menu, btn_start, btn_middle, btn_end,
+                score_j1, score_j2,
+                lbl_j1, lbl_j2,
+                current_player, lbl_player,
+                lbl_turn, lbl_message)
         show_menu(menu, btn_start, btn_middle, btn_end)
     
     
@@ -1104,7 +1182,7 @@ def auto_play(token_prop, grid, grid_canvas,
 # ~* évènements de changements de config'
 def event_change_config_to_begin(grid, grid_canvas, 
         score_j1, score_j2,
-        lbl_j1, lbl_j2,
+        lbl_j1, lbl_j2, lbl_message,
         victory):
     """
     ø parametres :
@@ -1133,12 +1211,13 @@ def event_change_config_to_begin(grid, grid_canvas,
     show_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
+    lbl_message.config(text="\nヾ(^▽^ヾ)")
     interface.pack()
 # end def
 
 def event_change_config_to_end(grid, grid_canvas, 
         score_j1, score_j2,
-        lbl_j1, lbl_j2,
+        lbl_j1, lbl_j2, lbl_message,
         victory):
     """
     ø parametres :
@@ -1167,12 +1246,13 @@ def event_change_config_to_end(grid, grid_canvas,
     show_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
+    lbl_message.config(text="\nヾ(^▽^ヾ)")
     interface.pack()
 # end def
 
 def event_change_config_to_middle(grid, grid_canvas, 
         score_j1, score_j2,
-        lbl_j1, lbl_j2,
+        lbl_j1, lbl_j2, lbl_message,
         victory):
     """
     ø parametres :
@@ -1201,11 +1281,12 @@ def event_change_config_to_middle(grid, grid_canvas,
     show_score(lbl_j1, lbl_j2, score_j1, score_j2)
     draw_grid(grid_canvas, grid)
     draw_tokens(grid_canvas, grid)
+    lbl_message.config(text="\nヾ(^▽^ヾ)")
     interface.pack()
 # end def
 
 # ~* évènement de déplacement de pion
-def event_move_token(event, token_prop, ai,
+def event_move_token(window, event, token_prop, ai,
         grid, grid_canvas,
         score_j1, score_j2,
         lbl_j1, lbl_j2, lbl_message,
@@ -1214,8 +1295,10 @@ def event_move_token(event, token_prop, ai,
         btn_start, btn_middle, btn_end):
     """
     ø parametres :
+        -> window = tkinter.Tk()
         -> event : tkinter.Event()
         -> token_prop : list
+        -> ai = tkinter.IntVar()
         -> grid : list
         -> grid_canvas : tkinter.Canvas()
         -> score_j1 : tkinter.IntVar()
@@ -1263,17 +1346,14 @@ def event_move_token(event, token_prop, ai,
                 move = deplacement_isole(token_prop, isolated, 
                         grid, grid_canvas, token_prop[1], token_prop[2],
                         x, y, lbl_message)
-                print(move)
             # S'il n'existe pas de pions isolés pour le joueur courant :
             else:
                 # On tente un déplacement voisin
                 move = deplacement_voisin(token_prop, grid, grid_canvas,
                         token_prop[1], token_prop[2], x, y,
                         lbl_message)
-                print(move)
             # Si un mouvement a eu lieu :
             if move:
-                print("je suis dans move avec move = ", move)
                 # On calcule le score
                 calc_score(grid, score_j1, score_j2)
                 show_score(lbl_j1, lbl_j2, score_j1, score_j2)
@@ -1293,20 +1373,19 @@ def event_move_token(event, token_prop, ai,
                 if not victory[0] and not victory[1]:
                     # On change de joueur courant et on met à jour 
                     #       le menu
-                    print("je change de joueur")
-                    change_current_player(token_prop, grid, grid_canvas, ai,
+                    change_current_player(window, token_prop, grid, grid_canvas, ai,
                             menu, btn_start, btn_middle, btn_end,
                             score_j1, score_j2,
                             lbl_j1, lbl_j2,
                             current_player, lbl_player,
-                            lbl_turn, lbl_message)
-                    
+                            lbl_turn, lbl_message)             
 # end def
 
 # ~* évènement de passage de tour
-def event_pass(token_prop, grid, grid_canvas, current_player):
+def event_pass(window, token_prop, grid, grid_canvas, current_player):
     """
     ø parametres :
+        -> window : tkinter.Tk()
         -> token_prop : list
         -> grid : list
         -> grid_canvas : tkinter.Canvas()
@@ -1318,17 +1397,12 @@ def event_pass(token_prop, grid, grid_canvas, current_player):
     # Si pas de cas de victoire
     if not victory[0] and not victory[1]:
         # On annule le mouvement en cours
-        cancel_move(token_prop, grid_canvas, grid)
-
-        # On change le joueur courant et on met à jour l'affichage 
-        #       du menu
-        change_current_player(token_prop, grid, grid_canvas, ai,
-                menu, btn_start, btn_middle, btn_end,
-                score_j1, score_j2,
-                lbl_j1, lbl_j2,
-                current_player, lbl_player,
+        skip_turn(window, token_prop, grid, grid_canvas, ai,
+                menu, btn_start, btn_middle, btn_end, 
+                score_j1, score_j2,         
+                lbl_j1, lbl_j2,         
+                current_player, lbl_player,         
                 lbl_turn, lbl_message)
-        show_player(lbl_player, current_player.get())
 # end def
 
 #=========================
@@ -1349,27 +1423,27 @@ interface.pack()
 btn_start.config(command=lambda : 
         event_change_config_to_begin(grid, grid_canvas, 
         score_j1, score_j2,
-        lbl_j1, lbl_j2,
+        lbl_j1, lbl_j2, lbl_message,
         victory))
 # Passage à la configuration milieu de partie
 btn_middle.config(command=lambda : 
         event_change_config_to_middle(grid, grid_canvas, 
         score_j1, score_j2,
-        lbl_j1, lbl_j2,
+        lbl_j1, lbl_j2, lbl_message,
         victory))
 # Passage à la configuration fin de partie
 btn_end.config(command=lambda : 
         event_change_config_to_end(grid, grid_canvas, 
         score_j1, score_j2,
-        lbl_j1, lbl_j2,
+        lbl_j1, lbl_j2, lbl_message,
         victory))
 # Passer son tour
 btn_pass.config(command=lambda :
-        event_pass(token_prop, grid, grid_canvas, current_player))
+        event_pass(window, token_prop, grid, grid_canvas, current_player))
 
 # Ajout de l'évènement du clic sur la grille pour sélectionner ou
 # déplacer un pion.
-grid_canvas.bind('<1>', lambda e: event_move_token(e, token_prop, ai,
+grid_canvas.bind('<1>', lambda e: event_move_token(window, e, token_prop, ai,
         grid, grid_canvas,
         score_j1, score_j2,
         lbl_j1, lbl_j2, lbl_message,
