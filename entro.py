@@ -59,7 +59,7 @@
 
 from tkinter import *
 from random import *
-from time import *
+from time import sleep
 
 #=========================
 # CONSTANTES
@@ -1057,16 +1057,21 @@ def auto_play(token_prop, grid, grid_canvas,
         current_player, lbl_player,
         lbl_turn, lbl_message):
     token = rand_select_token(grid, 2)
+
+    window.update()
+    sleep(0.5)
+
     # On met le pion en évidence en l'entourant d'un rectangle
     grid_canvas.create_rectangle(token[1]*SCALE, token[0]*SCALE,
             token[1]*SCALE+SCALE, token[0]*SCALE+SCALE, 
             outline="#7FFF00", width="3")
     cell = rand_select_move(grid, token[1], token[0])
-    interface.pack()
-    sleep(1)
-    
-    move_token(token_prop, grid, token[1], token[0], cell[1], cell[0])
 
+    window.update()
+    sleep(1)
+
+    move_token(token_prop, grid, token[1], token[0], cell[1], cell[0])
+    
     # On calcule le score
     calc_score(grid, score_j1, score_j2)
     show_score(lbl_j1, lbl_j2, score_j1, score_j2)
@@ -1258,15 +1263,17 @@ def event_move_token(event, token_prop, ai,
                 move = deplacement_isole(token_prop, isolated, 
                         grid, grid_canvas, token_prop[1], token_prop[2],
                         x, y, lbl_message)
+                print(move)
             # S'il n'existe pas de pions isolés pour le joueur courant :
             else:
                 # On tente un déplacement voisin
                 move = deplacement_voisin(token_prop, grid, grid_canvas,
                         token_prop[1], token_prop[2], x, y,
                         lbl_message)
-
+                print(move)
             # Si un mouvement a eu lieu :
             if move:
+                print("je suis dans move avec move = ", move)
                 # On calcule le score
                 calc_score(grid, score_j1, score_j2)
                 show_score(lbl_j1, lbl_j2, score_j1, score_j2)
@@ -1286,6 +1293,7 @@ def event_move_token(event, token_prop, ai,
                 if not victory[0] and not victory[1]:
                     # On change de joueur courant et on met à jour 
                     #       le menu
+                    print("je change de joueur")
                     change_current_player(token_prop, grid, grid_canvas, ai,
                             menu, btn_start, btn_middle, btn_end,
                             score_j1, score_j2,
