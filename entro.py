@@ -729,6 +729,7 @@ def can_token_move(grid, x, y, player):
     **  Teste si un pion peut se déplacer quelque part 
         selon les règles du jeu
     """
+    # Si le pion est bloqué ou isolé :
     if test_state(grid, x, y):
         return False
 
@@ -780,12 +781,14 @@ def can_player_move(grid, player):
 # end def
 
 def test_victory(victory, current_player, lbl_player, 
-            lbl_turn, lbl_message, score_j1, score_j2):
+        lbl_turn, lbl_message, score_j1, score_j2):
     """
     ø paramètres :
         -> victory : list
         -> current_player : tkinter.IntVar()
         -> lbl_player : tkinter.Label()
+        -> lbl_turn : tkinter.Label()
+        -> lbl_message : tkinter.Label()
         -> score_j1 : int
         -> score_j2 : int
     ø retour :
@@ -814,14 +817,27 @@ def test_victory(victory, current_player, lbl_player,
         trigger_victory(2, current_player, lbl_player, lbl_turn, lbl_message,
                 grid, grid_canvas)
     else:
-        test_draw(victory, current_player, 
+        test_draw(victory, 
             lbl_player, lbl_turn, lbl_message,
             grid, grid_canvas)
 # end def
 
-def test_draw(victory, current_player, 
-            lbl_player, lbl_turn, lbl_message,
-            grid, grid_canvas):
+def test_draw(victory, 
+        lbl_player, lbl_turn, lbl_message,
+        grid, grid_canvas):
+    """
+    ø paramètres :
+        -> victory : list
+        -> lbl_player : tkinter.Label()
+        -> lbl_turn : tkinter.Label()
+        -> lbl_message : tkinter.Label()
+        -> score_j1 : int
+        -> score_j2 : int
+    ø retour :
+        -> None
+    **  teste si le joueur 1 et le joueur 2 on tout les deux rempli
+        la condition de victoire. Si oui, on déclenche l'égalité
+    """
     if victory[0] == True and victory[1] == True:
         # On déclenche l'égalité
         trigger_draw(lbl_player, lbl_turn, lbl_message,
@@ -865,8 +881,35 @@ def change_current_player(window, token_prop, grid, grid_canvas, ai,
         lbl_j1, lbl_j2,
         current_player, lbl_player,
         lbl_turn, lbl_message):
+    """
+    ø paramètres :
+        -> window : tkinter.Tk()
+        -> token_prop : list
+        -> grid : list
+        -> grid_canvas : tkinter.Canvas()
+        -> ai : tkinter.IntVar()
+        -> menu : tkinter.Frame()
+        -> btn_start : tkinter.Button()
+        -> btn_middle : tkinter.Button()
+        -> btn_end : tkinter.Button()
+        -> score_j1 : tkinter.IntVar()
+        -> score_j2 : tkinter.IntVar()
+        -> lbl_j1 : tkinter.Label()
+        -> lbl_j2 : tkinter.Label()
+        -> current_player : tkinter.IntVar()
+        -> lbl_player : tkinter.Label()
+        -> lbl_turn : tkinter.Label()
+        -> lbl_message : tkinter.Label()
+    ø retour :
+        -> None
+    **  S'occupe de changer le joueur courant et de déclencher un 
+        passage de tour automatique si c'est nécessaire ou de lancer 
+        le tour de l'IA si elle est activée
+    """
+    # Changement du joueur courant
     current_player.set(current_player.get() % 2 +1) 
 
+    # Si le joueur ne peut pas jouer, on passe son tour
     if not can_player_move(grid, current_player.get()):
         lbl_message.config(text="\nヽ(;´Д｀)ﾉ\n" +
                 "Joueur " + str(current_player.get()) + 
@@ -882,7 +925,9 @@ def change_current_player(window, token_prop, grid, grid_canvas, ai,
             current_player, lbl_player,
             lbl_turn, lbl_message)
 
+    # Si l'ia est activé et que c'est son tour :
     if current_player.get() == 2 and ai.get() == 1:
+        # On déclenche le jeu de l'IA
         auto_play(window, token_prop, grid, grid_canvas, ai,
                 menu, btn_start, btn_middle, btn_end,
                 score_j1, score_j2,
@@ -925,6 +970,18 @@ def trigger_victory(player, current_player, lbl_player, lbl_turn, lbl_message,
 
 def trigger_draw(lbl_player, lbl_turn, lbl_message,
             grid, grid_canvas):
+    """
+    ø paramètres :
+        -> lbl_player : tkinter.Label()
+        -> lbl_turn : tkinter.Label()
+        -> lbl_message : tkinter.Label()
+        -> grid : list
+        -> grid_canvas : tkinter.Canvas()
+    ø retour :
+        -> None
+    **  Déclenche l'égalité et affiche a différents
+        endroits que la partie est terminée
+    """
     lbl_player.config(text="Égalité",
             fg="#FFFF00")
     lbl_turn.config(text="C'est fini !")
@@ -942,6 +999,29 @@ def skip_turn(window, token_prop, grid, grid_canvas, ai,
         lbl_j1, lbl_j2,
         current_player, lbl_player,
         lbl_turn, lbl_message):
+    """
+    ø paramètres :
+        -> window : tkinter.Tk()
+        -> token_prop : list
+        -> grid : list
+        -> grid_canvas : tkinter.Canvas()
+        -> ai : tkinter.IntVar()
+        -> menu : tkinter.Frame()
+        -> btn_start : tkinter.Button()
+        -> btn_middle : tkinter.Button()
+        -> btn_end : tkinter.Button()
+        -> score_j1 : tkinter.IntVar()
+        -> score_j2 : tkinter.IntVar()
+        -> lbl_j1 : tkinter.Label()
+        -> lbl_j2 : tkinter.Label()
+        -> current_player : tkinter.IntVar()
+        -> lbl_player : tkinter.Label()
+        -> lbl_turn : tkinter.Label()
+        -> lbl_message : tkinter.Label()
+    ø retour :
+        -> None
+    **  Passe le tour en cours du joueur
+    """
     cancel_move(token_prop, grid_canvas, grid)
 
     # On change le joueur courant et on met à jour l'affichage 
@@ -1122,15 +1202,23 @@ def select_token(grid, grid_canvas, x, y, player, token_prop):
 # end def
 
 # ~* Fonctions de gestion de l'IA
-def rand_select_token(grid, player):
+def rand_select_token(grid):
+    """
+    ø paramètres :
+        -> grid : list
+    ø retour :
+        -> tuple
+    **  Crée une liste des pions du joueur qui sont jouable et en choisi
+        un au hasard
+    """
     tokens_list = []
     # Pour toute la grille :
     for row in range(NB_ROWS):
         for col in range(NB_COLS):
             # Si le jeton appartient aux joueur
             # et qu'il peut être joué :
-            if grid[row][col] == player and \
-                    can_token_move(grid, col, row, player):
+            if grid[row][col] == 2 and \
+                    can_token_move(grid, col, row, 2):
                 # On l'ajoute à la liste des pions jouable
                 tokens_list.append((row, col))
 
@@ -1140,6 +1228,16 @@ def rand_select_token(grid, player):
 # end def
 
 def rand_select_move(grid, x, y):
+    """
+    ø paramètres :
+        -> grid : list
+        -> x : int
+        -> y : int
+    ø retour :
+        -> tuple
+    **  Crée une liste des cases sur lesquelles on peut jouer et en
+        choisi une au hasard
+    """
     moves_list = []
     # Vérification de l'existence d'un pion isolé
     isolated = test_isolated(grid, 2)
@@ -1179,7 +1277,31 @@ def auto_play(window, token_prop, grid, grid_canvas, ai,
         lbl_j1, lbl_j2,
         current_player, lbl_player,
         lbl_turn, lbl_message):
-    token = rand_select_token(grid, 2)
+    """
+    ø paramètres :
+        -> window : tkinter.Tk()
+        -> token_prop : list
+        -> grid : list
+        -> grid_canvas : tkinter.Canvas()
+        -> ai : tkinter.IntVar()
+        -> menu : tkinter.Frame()
+        -> btn_start : tkinter.Button()
+        -> btn_middle : tkinter.Button()
+        -> btn_end : tkinter.Button()
+        -> score_j1 : tkinter.IntVar()
+        -> score_j2 : tkinter.IntVar()
+        -> lbl_j1 : tkinter.Label()
+        -> lbl_j2 : tkinter.Label()
+        -> current_player : tkinter.IntVar()
+        -> lbl_player : tkinter.Label()
+        -> lbl_turn : tkinter.Label()
+        -> lbl_message : tkinter.Label()
+    ø retour :
+        -> None
+    **  S'occupe de faire jouer l'IA et de changer l'interface en 
+        conséquences
+    """
+    token = rand_select_token(grid)
 
     # Attente de 1/2 seconde
     # pour laisser le temps au joueur de voir l'action
