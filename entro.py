@@ -72,99 +72,102 @@ PINK = "#ff1493"    # Couleur des pions du joueur 1
 #=========================
 # VARIABLES
 
-# ~* Conteneur de la grille
-grid = []
+### Cette ligne sers lors de l'import, a ignorer les variables
+### d'entro.py (dans le fichier tests.py par exemple)
+if __name__ == "__main__":
+    # ~* Conteneur de la grille
+    grid = []
 
-# ~* Propriétés du jeton sélectionné
-token_prop = [False, None, None]
-    # Cette liste contiendra les informations sur le jeton sélectionné
-    #     ø [0] Un pion est-il sélectionné ?
-    #           Oui -> True
-    #           Non -> False
-    #     ø [1] Coordonnées x du pion, s'il y a lieu (sinon, None)
-    #     ø [2] Coordonnées y du pion, s'il y a lieu (sinon, None)
+    # ~* Propriétés du jeton sélectionné
+    token_prop = [False, None, None]
+        # Cette liste contiendra les informations sur le jeton sélectionné
+        #     ø [0] Un pion est-il sélectionné ?
+        #           Oui -> True
+        #           Non -> False
+        #     ø [1] Coordonnées x du pion, s'il y a lieu (sinon, None)
+        #     ø [2] Coordonnées y du pion, s'il y a lieu (sinon, None)
 
-# ~* État de la partie
-victory = [False, False]
-    #     ø [0] Victoire (True) ou pas (False) du joueur 1
-    #     ø [1] Victoire (True) ou pas (False) du joueur 2
+    # ~* État de la partie
+    victory = [False, False]
+        #     ø [0] Victoire (True) ou pas (False) du joueur 1
+        #     ø [1] Victoire (True) ou pas (False) du joueur 2
 
-# ~* Variables graphiques (Fenêtre / Conteneur)
-window = Tk()               # Fenêtre Principale
-interface = Frame(window,   # Sous-fenêtre Globale (dans windows)
-        bg="#242424")
-game = Frame(interface,     # Sous-fenêtre de gauche "game"
-        bg="#242424")       #       (dans interface)
-menu = Frame(interface,     # Sous-fenêtre de droite "menu"
-        bg="#242424")       #       (dans interface)
+    # ~* Variables graphiques (Fenêtre / Conteneur)
+    window = Tk()               # Fenêtre Principale
+    interface = Frame(window,   # Sous-fenêtre Globale (dans windows)
+            bg="#242424")
+    game = Frame(interface,     # Sous-fenêtre de gauche "game"
+            bg="#242424")       #       (dans interface)
+    menu = Frame(interface,     # Sous-fenêtre de droite "menu"
+            bg="#242424")       #       (dans interface)
 
-# ~* Variables graphiques (Labels)
-lbl_j1 = Label(game,        # Label, affiche le nom et le score
-        bg="#242424",       #       du joueur 1
-        fg=CYAN) 
-lbl_j2 = Label(game,        # Label, affiche le nom et le score
-        bg="#242424",       #       du joueur 2
-        fg=PINK)
-lbl_config = Label(menu,    # Label, demande de choisir une config'
-        text="Choisissez une configuration :", 
-        bg="#242424",
-        fg="#DADADA")
-lbl_player = Label(menu,    # Label, affiche le nom du joueur courant
-        bg="#242424",
-        font=(None, 21))
-lbl_turn = Label(menu,      # Label, propose de jouer son tour
-        text="C'est votre tour", 
-        bg="#242424",
-        fg="#DADADA")
-lbl_message = Label(menu,   # Label, affiche les messages pour le joueur
-        justify=LEFT,       #       (erreurs de déplacement,
-        bg="#242424",       #       félicitations en fin de partie, 
-        fg="#DADADA")       #       etc.)
+    # ~* Variables graphiques (Labels)
+    lbl_j1 = Label(game,        # Label, affiche le nom et le score
+            bg="#242424",       #       du joueur 1
+            fg=CYAN) 
+    lbl_j2 = Label(game,        # Label, affiche le nom et le score
+            bg="#242424",       #       du joueur 2
+            fg=PINK)
+    lbl_config = Label(menu,    # Label, demande de choisir une config'
+            text="Choisissez une configuration :", 
+            bg="#242424",
+            fg="#DADADA")
+    lbl_player = Label(menu,    # Label, affiche le nom du joueur courant
+            bg="#242424",
+            font=(None, 21))
+    lbl_turn = Label(menu,      # Label, propose de jouer son tour
+            text="C'est votre tour", 
+            bg="#242424",
+            fg="#DADADA")
+    lbl_message = Label(menu,   # Label, affiche les messages pour le joueur
+            justify=LEFT,       #       (erreurs de déplacement,
+            bg="#242424",       #       félicitations en fin de partie, 
+            fg="#DADADA")       #       etc.)
 
-# ~* Variable graphique (Zone de dessin)
-grid_canvas = Canvas(game,  # Zone de dessin de la grille de jeu
-        width=NB_COLS*SCALE, 
-        height=NB_ROWS*SCALE, 
-        highlightthickness=0)
+    # ~* Variable graphique (Zone de dessin)
+    grid_canvas = Canvas(game,  # Zone de dessin de la grille de jeu
+            width=NB_COLS*SCALE, 
+            height=NB_ROWS*SCALE, 
+            highlightthickness=0)
 
-# ~* État d'activation de l'IA
-ai = IntVar(value=0)
-    #   0 : désactivée, 1 : activée
+    # ~* État d'activation de l'IA
+    ai = IntVar(value=0)
+        #   0 : désactivée, 1 : activée
 
-# ~* Scores joueurs 1 et 2
-score_j1 = IntVar(game, value=0)
-score_j2 = IntVar(game, value=0)
+    # ~* Scores joueurs 1 et 2
+    score_j1 = IntVar(game, value=0)
+    score_j2 = IntVar(game, value=0)
 
-# ~* N° du joueur courant
-current_player = IntVar(menu, value=1)
+    # ~* N° du joueur courant
+    current_player = IntVar(menu, value=1)
 
-# ~* Objets interactifs (Boutons)
-btn_start = Button(menu,    # Bouton "début de partie", change la grille
-        text="DEBUT DE PARTIE", 
-        bg="#848484",
-        width=14,
-        highlightbackground="#424242")
-btn_middle = Button(menu,   # Bouton "millieu de partie",
-        text="MI-PARTIE",   #       change la grille
-        bg="#848484",
-        width=14,
-        highlightbackground="#424242")
-btn_end = Button(menu,      # Bouton "fin de partie", change la grille
-        text="FIN DE PARTIE", 
-        bg="#848484",
-        width=14,
-        highlightbackground="#424242")
-btn_pass = Button(menu,     # Bouton "passer son tour", change de joueur
-        text="PASSER SON TOUR", 
-        bg="#848484",
-        width=14,
-        highlightbackground="#424242")
-chk_ai = Checkbutton(menu,  # Check-box "Jouer contre l'IA", active l'IA
-        variable=ai,
-        text="Jouer contre l'IA",
-        bg="#242424",
-        fg="#848484",
-        highlightbackground="#242424")
+    # ~* Objets interactifs (Boutons)
+    btn_start = Button(menu,    # Bouton "début de partie", change la grille
+            text="DEBUT DE PARTIE", 
+            bg="#848484",
+            width=14,
+            highlightbackground="#424242")
+    btn_middle = Button(menu,   # Bouton "millieu de partie",
+            text="MI-PARTIE",   #       change la grille
+            bg="#848484",
+            width=14,
+            highlightbackground="#424242")
+    btn_end = Button(menu,      # Bouton "fin de partie", change la grille
+            text="FIN DE PARTIE", 
+            bg="#848484",
+            width=14,
+            highlightbackground="#424242")
+    btn_pass = Button(menu,     # Bouton "passer son tour", change de joueur
+            text="PASSER SON TOUR", 
+            bg="#848484",
+            width=14,
+            highlightbackground="#424242")
+    chk_ai = Checkbutton(menu,  # Check-box "Jouer contre l'IA", active l'IA
+            variable=ai,
+            text="Jouer contre l'IA",
+            bg="#242424",
+            fg="#848484",
+            highlightbackground="#242424")
 
 
 #=========================
@@ -468,139 +471,6 @@ def show_score(lbl_j1, lbl_j2, score_j1, score_j2):
 # end def
 
 # ~* Fonctions de tests
-def can_token_move(grid, x, y, player):
-    """
-    ø parametres :
-        -> grid : list
-        -> x : int
-        -> y : int
-        -> player : int
-    ø retour :
-        -> bool
-    **  Teste si un pion peut se déplacer quelque part 
-        selon les règles du jeu
-    """
-    if test_state(grid, x, y):
-        return False
-
-    # Vérification de l'existence d'un pion isolé
-    isolated = test_isolated(grid, player)
-    # S'il existe au moins un pion isolé :
-    if isolated != []:
-        # Pour toute la grille :
-        for row in range(NB_ROWS):
-            for col in range(NB_COLS):
-                # On vérifie qu'on puisse faire un déplacement isolé
-                # chacunes des cases
-                if test_isolated_move(isolated, grid, x, y, col, row):
-                    return True
-    
-    # S'il n'y à pas de pions isolé :
-    else:
-        # Pour toute la grille :
-        for row in range(NB_ROWS):
-            for col in range(NB_COLS):
-                # On vérifie qu'on puisse faire un déplacement isolé
-                # chacunes des cases
-                if test_neighbour_move(grid, x, y, col, row):
-                    return True
-    
-    # Si aucun déplacement n'est possible, on renvoi False
-    return False
-# end def
-
-def can_player_move(grid, player):
-    """
-    ø parametres :
-        -> grid : list
-        -> player : int
-    ø retour :
-        -> bool
-    **  Teste si un joueur peut se déplacer quelque part 
-        selon les règles du jeu
-    """
-    # Pour toute la grille :
-    for row in range(NB_ROWS):
-        for col in range(NB_COLS):
-            # On vérifie que le joueur puisse jouer un de ses pions
-            if grid[row][col] == player and\
-                    can_token_move(grid, col, row, player):
-                return True
-
-    return False
-# end def
-
-def test_isolated(grid, player):
-    """
-    ø paramètres :
-        -> grid : list
-        -> player : int
-    ø retour :
-        -> list
-    **  Teste pour chaque case de la grille, s'il existe des pions
-        isolés appartenant au joueur courant.
-    """
-    isolated = []
-    # Pour chaque ligne :
-    for row in range(NB_ROWS):
-        # Pour chaque colonne :
-        for col in range(NB_COLS):
-            # S'il existe un pion du joueur courant sur la case,
-            #       et qu'il est considéré comme isolés
-            if grid[row][col] == player and \
-                    test_state(grid, col, row) == "isolated":
-                # On l'ajoute à la liste des pions isolés
-                isolated.append([row, col])
-    
-    # Retour de la liste des pions isolés
-    return isolated
-# end def
-
-def test_isolated_move(isolated, grid, x1, y1, x2, y2):
-    """
-    ø parametres :
-        -> isolated : list
-        -> grid : list
-        -> y1 : int
-        -> x2 : int
-        -> y2 : int
-        -> x1 : int
-    ø retour :
-        -> bool
-    **  Teste si un pion peut effectuer un déplacement isolé vers une 
-        cible selon les règles du jeu
-    """
-    # Pour chaque pion isolé allié
-    for i in range (len(isolated)):
-        # Si la case destination est à côté d'un pion isolé allié :
-        if y2-1 <= isolated[i][0] <= y2+1 and \
-                x2-1 <= isolated[i][1] <= x2+1 and \
-                isolated[i] != [y2, x2]:
-            # Si la case destination n'est pas occupée :
-            if grid[y2][x2] == 0:
-                # Si la case destination est dans une direction valide,
-                #       et que les cases entre le départ et la 
-                #       destination sont libre :
-                if test_direction(x1, y1, x2, y2) and \
-                        test_between(grid, x1, y1, x2, y2):
-                    return True
-    
-    return False
-# end def
-
-def test_neighbour_move(grid, x1, y1, x2, y2):
-    # S'il n'y à pas de pions sur la case destination:
-    if grid[y2][x2] == 0:
-        # Si la case destination est dans une direction valide,
-        # et que les cases entre le départ et la destination sont libre:
-        if test_direction(x1, y1, x2, y2) and \
-                test_between(grid, x1, y1, x2, y2):
-            # On peut bouger le pion
-            return True
-    
-    return False
-# end def
-
 ### Fonction suivante FR, car expressément demandée 😇
 def est_dans_grille(position):
     """
@@ -636,6 +506,92 @@ def est_dans_grille(position):
     # Sinon :
     else:
         return False
+# end def
+
+def test_state(grid, x, y):
+    """
+    ø paramètres :
+        -> grid : list
+        -> x : int
+        -> y : int
+    ø retour :
+        -> str
+    **  teste l'etat d'un pion (x, y) dans la grille en checkant autour
+        de lui. Retourne son etat bloque ou isole ou juste None s'il
+        n'est ni l'un ni l'autre.
+    """
+    allies = False
+    enemies = False
+    # Pour chaque ligne autour du pion :
+    for row in range(y-1, y+2):
+        # Pour chaque colonne autour du pion :
+        for col in range(x-1, x+2):
+            # Si la case est dans la grille et que ce n'est pas celle 
+            #       du pion (au centre) :
+            if est_dans_grille(str((row, col))) and (y, x) != (row, col):
+                # Si c'est un allié :
+                if grid[row][col] == grid[y][x]:
+                    allies = True
+                # Si c'est un ennemi :
+                elif grid[row][col] + grid[y][x] == 3:
+                    enemies = True
+    
+    # S'il n'y a pas d'alliés autour, ni d'ennemis :
+    if not allies and not enemies:
+        return "isolated"
+    # S'il n'y a pas d'allié autour, mais au moins un ennemi :
+    elif not allies and enemies:
+        return "blocked"
+    # Sinon :
+    else:
+        return None
+# end def
+
+def test_isolated(grid, player):
+    """
+    ø paramètres :
+        -> grid : list
+        -> player : int
+    ø retour :
+        -> list
+    **  Teste pour chaque case de la grille, s'il existe des pions
+        isolés appartenant au joueur courant.
+    """
+    isolated = []
+    # Pour chaque ligne :
+    for row in range(NB_ROWS):
+        # Pour chaque colonne :
+        for col in range(NB_COLS):
+            # S'il existe un pion du joueur courant sur la case,
+            #       et qu'il est considéré comme isolés
+            if grid[row][col] == player and \
+                    test_state(grid, col, row) == "isolated":
+                # On l'ajoute à la liste des pions isolés
+                isolated.append([row, col])
+    
+    # Retour de la liste des pions isolés
+    return isolated
+# end def
+
+def test_direction(x1, y1, x2, y2):
+    """
+    ø paramètres :
+        -> x1 : int
+        -> y1 : int
+        -> x2 : int
+        -> y2 : int
+    ø retour :
+        -> bool
+    **  Teste si la direction du déplacement est valide
+    """
+    # Si la direction du déplacement n'est pas haut, bas, droite, gauche
+    #       ou l'une des diagonales :
+    if x2 != x1 and y2 != y1 and \
+            max(x1, x2) - min(x1, x2) != max(y1, y2) - min(y1, y2):
+        return False
+
+    # Sinon :
+    return True
 # end def
 
 def test_between(grid, x1, y1, x2, y2):
@@ -704,64 +660,123 @@ def test_between(grid, x1, y1, x2, y2):
     return True
 # end def
 
-def test_direction(x1, y1, x2, y2):
+def test_neighbour_move(grid, x1, y1, x2, y2):
     """
     ø paramètres :
+        -> grid : list
         -> x1 : int
         -> y1 : int
         -> x2 : int
         -> y2 : int
     ø retour :
         -> bool
-    **  Teste si la direction du déplacement est valide
+    **  Teste si un déplacement voisin vers une cible est possible selon
+        les règles du jeu.
     """
-    # Si la direction du déplacement n'est pas haut, bas, droite, gauche
-    #       ou l'une des diagonales :
-    if x2 != x1 and y2 != y1 and \
-            max(x1, x2) - min(x1, x2) != max(y1, y2) - min(y1, y2):
-        return False
-
-    # Sinon :
-    return True
+    # S'il n'y à pas de pions sur la case destination:
+    if grid[y2][x2] == 0:
+        # Si la case destination est dans une direction valide,
+        # et que les cases entre le départ et la destination sont libre:
+        if test_direction(x1, y1, x2, y2) and \
+                test_between(grid, x1, y1, x2, y2):
+            # On peut bouger le pion
+            return True
+    
+    return False
 # end def
 
-def test_state(grid, x, y):
+def test_isolated_move(isolated, grid, x1, y1, x2, y2):
     """
-    ø paramètres :
+    ø parametres :
+        -> isolated : list
+        -> grid : list
+        -> y1 : int
+        -> x2 : int
+        -> y2 : int
+        -> x1 : int
+    ø retour :
+        -> bool
+    **  Teste si un pion peut effectuer un déplacement isolé vers une 
+        cible selon les règles du jeu
+    """
+    # Pour chaque pion isolé allié
+    for i in range (len(isolated)):
+        # Si la case destination est à côté d'un pion isolé allié :
+        if y2-1 <= isolated[i][0] <= y2+1 and \
+                x2-1 <= isolated[i][1] <= x2+1 and \
+                isolated[i] != [y2, x2]:
+            # Si la case destination n'est pas occupée :
+            if grid[y2][x2] == 0:
+                # Si la case destination est dans une direction valide,
+                #       et que les cases entre le départ et la 
+                #       destination sont libre :
+                if test_direction(x1, y1, x2, y2) and \
+                        test_between(grid, x1, y1, x2, y2):
+                    return True
+    
+    return False
+# end def
+
+def can_token_move(grid, x, y, player):
+    """
+    ø parametres :
         -> grid : list
         -> x : int
         -> y : int
+        -> player : int
     ø retour :
-        -> str
-    **  teste l'etat d'un pion (x, y) dans la grille en checkant autour
-        de lui. Retourne son etat bloque ou isole ou juste None s'il
-        n'est ni l'un ni l'autre.
+        -> bool
+    **  Teste si un pion peut se déplacer quelque part 
+        selon les règles du jeu
     """
-    allies = False
-    enemies = False
-    # Pour chaque ligne autour du pion :
-    for row in range(y-1, y+2):
-        # Pour chaque colonne autour du pion :
-        for col in range(x-1, x+2):
-            # Si la case est dans la grille et que ce n'est pas celle 
-            #       du pion (au centre) :
-            if est_dans_grille(str((row, col))) and (y, x) != (row, col):
-                # Si c'est un allié :
-                if grid[row][col] == grid[y][x]:
-                    allies = True
-                # Si c'est un ennemi :
-                elif grid[row][col] + grid[y][x] == 3:
-                    enemies = True
+    if test_state(grid, x, y):
+        return False
+
+    # Vérification de l'existence d'un pion isolé
+    isolated = test_isolated(grid, player)
+    # S'il existe au moins un pion isolé :
+    if isolated != []:
+        # Pour toute la grille :
+        for row in range(NB_ROWS):
+            for col in range(NB_COLS):
+                # On vérifie qu'on puisse faire un déplacement isolé
+                # chacunes des cases
+                if test_isolated_move(isolated, grid, x, y, col, row):
+                    return True
     
-    # S'il n'y a pas d'alliés autour, ni d'ennemis :
-    if not allies and not enemies:
-        return "isolated"
-    # S'il n'y a pas d'allié autour, mais au moins un ennemi :
-    elif not allies and enemies:
-        return "blocked"
-    # Sinon :
+    # S'il n'y à pas de pions isolé :
     else:
-        return None
+        # Pour toute la grille :
+        for row in range(NB_ROWS):
+            for col in range(NB_COLS):
+                # On vérifie qu'on puisse faire un déplacement isolé
+                # chacunes des cases
+                if test_neighbour_move(grid, x, y, col, row):
+                    return True
+    
+    # Si aucun déplacement n'est possible, on renvoi False
+    return False
+# end def
+
+def can_player_move(grid, player):
+    """
+    ø parametres :
+        -> grid : list
+        -> player : int
+    ø retour :
+        -> bool
+    **  Teste si un joueur peut se déplacer quelque part 
+        selon les règles du jeu
+    """
+    # Pour toute la grille :
+    for row in range(NB_ROWS):
+        for col in range(NB_COLS):
+            # On vérifie que le joueur puisse jouer un de ses pions
+            if grid[row][col] == player and\
+                    can_token_move(grid, col, row, player):
+                return True
+
+    return False
 # end def
 
 def test_victory(victory, current_player, lbl_player, 
@@ -1106,6 +1121,24 @@ def select_token(grid, grid_canvas, x, y, player, token_prop):
         return False
 # end def
 
+# ~* Fonctions de gestion de l'IA
+def rand_select_token(grid, player):
+    tokens_list = []
+    # Pour toute la grille :
+    for row in range(NB_ROWS):
+        for col in range(NB_COLS):
+            # Si le jeton appartient aux joueur
+            # et qu'il peut être joué :
+            if grid[row][col] == player and \
+                    can_token_move(grid, col, row, player):
+                # On l'ajoute à la liste des pions jouable
+                tokens_list.append((row, col))
+
+    # On choisi un pion au hasard et on le retourne
+    token = randint(0, len(tokens_list)-1)
+    return tokens_list[token]
+# end def
+
 def rand_select_move(grid, x, y):
     moves_list = []
     # Vérification de l'existence d'un pion isolé
@@ -1138,23 +1171,6 @@ def rand_select_move(grid, x, y):
     
     # Si aucun déplacement n'est possible, on renvoi une liste vide
     return ()
-# end def
-
-def rand_select_token(grid, player):
-    tokens_list = []
-    # Pour toute la grille :
-    for row in range(NB_ROWS):
-        for col in range(NB_COLS):
-            # Si le jeton appartient aux joueur
-            # et qu'il peut être joué :
-            if grid[row][col] == player and \
-                    can_token_move(grid, col, row, player):
-                # On l'ajoute à la liste des pions jouable
-                tokens_list.append((row, col))
-
-    # On choisi un pion au hasard et on le retourne
-    token = randint(0, len(tokens_list)-1)
-    return tokens_list[token]
 # end def
 
 def auto_play(window, token_prop, grid, grid_canvas, ai,
@@ -1449,6 +1465,8 @@ def event_pass(window, token_prop, grid, grid_canvas, current_player):
 # Cette ligne sers pour l'utilisation du random dans le reste du code.
 seed()
 
+### Cette ligne sers lors de l'import, a ignorer le code principal
+### d'entro.py (dans le fichier tests.py par exemple)
 if __name__ == '__main__':
     # Initialisation et affichage de la grille
     # et de l'interface.

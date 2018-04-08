@@ -27,9 +27,9 @@
 # Chaque fonction __TEST__ testera une fonction dans le fichier 
 # principal : entro.py
 #
-# /!\ Les fonctions purement graphiques ne pourront être testés
-# (puisqu'elles ne font qu'afficher des choses a l'écran) Merci de 
-# prendre ceci en considération.
+# /!\ Certaines fonctions ne seront pas testées ici. Je détaillerais
+# pourquoi dans un bloc de commentaire dédié a ces fonctions dans
+# chaque catégorie.
 # ----------------------------------------------------------------------
 # 
 # © copyright : Ce code est certainement soumis à des trucs beaucoup
@@ -42,13 +42,26 @@ import entro as e
 # FONCTION PRINCIPALE
 
 def run_tests():
-    # test_deplacement_isole()
-    # test_deplacement_voisin()
-    # test_victoire()
-
+    # ~* Fonctions de tests
+    __TEST__est_dans_grille()
+    __TEST__test_state()
+    __TEST__test_isolated()
+    __TEST__test_direction()
+    __TEST__test_between()
+    __TEST__test_neighbour_move()
+    __TEST__test_isolated_move()
     __TEST__can_token_move()
     __TEST__can_player_move()
-    __TEST__test_isolated()
+
+    # ~* Fonction de gestion de partie
+    __TEST__calc_score()
+
+    # ~* Fonction de déplacement
+    __TEST__move_token()
+
+    # ~* Fonctions de gestion de l'IA
+    __TEST__rand_select_token()
+    __TEST__rand_select_move()
 
     print("\n...")
     print("Tous les tests sont OK")
@@ -56,6 +69,223 @@ def run_tests():
 
 #=========================
 # FONCTION DE TESTS
+
+# ~* Fonctions d'initialisation des grilles
+
+# Ces fonctions ne font que retourner une configuration de grille
+# Si aucun calcul n'est fait, il est donc inutile de les tester.
+# ======================================================================
+
+# ~* Fonctions de dessin
+
+# Ces fonctions sont purement graphique. 
+# Il est donc impossible de les tester.
+# ======================================================================
+
+# ~* Fonctions d'affichage
+
+# Ces fonctions sont purement graphique. 
+# Il est don cimpossible de les tester.
+# ======================================================================
+
+# ~* Fonctions de tests
+def __TEST__est_dans_grille():
+    # Tests pour des cas valides
+    assert e.est_dans_grille("(1, 3)"),\
+            "La case (1, 3) devrait etre dans la grille"
+    assert e.est_dans_grille("(4, 4)"),\
+            "La case (1, 3) devrait etre dans la grille"
+    assert e.est_dans_grille("(0, 0)"),\
+            "La case (1, 3) devrait etre dans la grille"
+
+    # Tests pour des cas non valides
+    assert not e.est_dans_grille("(-1, 1)"),\
+            "La case (-1, 1) ne devrait pas etre dans la grille"
+    assert not e.est_dans_grille("(4, 6)"),\
+            "La case (4, 6) ne devrait pas etre dans la grille"
+    assert not e.est_dans_grille(str((e.NB_COLS, e.NB_ROWS))),\
+            "La case (" + str(e.NB_COLS) + ", " + str(e.NB_ROWS) + ") " +\
+            "ne devrait pas etre dans la grille"
+
+    print("__TEST__est_dans_grille() : OK")
+# end def
+
+def __TEST__test_state():
+    grid_1 = [[2, 2, 2, 2, 2],
+              [2, 0, 0, 0, 2],
+              [0, 0, 0, 0, 0],
+              [1, 0, 0, 0, 1],
+              [1, 1, 1, 1, 1]]
+    # Test pour tout les pions de la grille en configuration initiale
+    for row in range(e.NB_ROWS):
+        for col in range(e.NB_COLS):
+            if grid_1[row][col] != 0:
+                test_state = e.test_state(grid_1, col, row)
+                assert not test_state, "__TEST__test_state() : " +\
+                        "Tout les pions de la grille 1 ne devraient être " +\
+                        "ni isolés, ni bloqués"
+
+    grid_2 = [[1, 2, 1, 2, 1],
+              [2, 0, 0, 1, 0],
+              [2, 1, 0, 2, 1],
+              [0, 0, 0, 0, 0],
+              [2, 0, 2, 0, 1]]
+    # Tests pour des pions bloqués
+    test_state = e.test_state(grid_2, 1, 2)
+    assert test_state == "blocked", "__TEST__test_state() : " +\
+            "(1, 2) devrait être bloqué"
+    test_state = e.test_state(grid_2, 3, 2)
+    assert test_state == "blocked", "__TEST__test_state() : " +\
+            "(3, 2) devrait être bloqué"
+
+    # Tests pour des pions isolés
+    test_state = e.test_state(grid_2, 0, 4)
+    assert test_state == "isolated", "__TEST__test_state() : " +\
+            "(0, 4) devrait être isolé"
+    test_state = e.test_state(grid_2, 4, 4)
+    assert test_state == "isolated", "__TEST__test_state() : " +\
+            "(4, 4) devrait être isolé"
+    
+    print("__TEST__test_state() : OK")
+# end def
+
+def __TEST__test_isolated():
+    grid_1 = [[2, 2, 2, 2, 2],
+              [2, 0, 0, 0, 2],
+              [0, 0, 0, 0, 0],
+              [1, 0, 0, 0, 1],
+              [1, 1, 1, 1, 1]]
+    # test pour une grille sans pions isolé
+    test_isolated = e.test_isolated(grid_1, 1)
+    assert test_isolated == [], "__TEST__test_isolated() : " +\
+            "Le joueur 1 ne devrait pas avoir de pions isolés " +\
+            "dans la grille 1"
+    test_isolated = e.test_isolated(grid_1, 2)
+    assert test_isolated == [], "__TEST__test_isolated() : " +\
+            "Le joueur 2 ne devrait pas avoir de pions isolés " +\
+            "dans la grille 1"
+
+    grid_2 = [[1, 2, 1, 2, 1],
+              [2, 0, 0, 1, 0],
+              [2, 1, 0, 2, 1],
+              [0, 0, 0, 0, 0],
+              [2, 0, 2, 0, 1]]
+    # test pour une grille sans pions isolé
+    test_isolated = e.test_isolated(grid_2, 1)
+    assert test_isolated == [[4, 4]], "__TEST__test_isolated() : " +\
+            "Le joueur 1 ne devrait pas avoir de pions isolés " +\
+            "dans la grille 2"
+    test_isolated = e.test_isolated(grid_2, 2)
+    assert test_isolated == [[4, 0], [4, 2]], "__TEST__test_isolated() : " +\
+            "Le joueur 2 ne devrait pas avoir de pions isolés " +\
+            "dans la grille 2"
+
+    print("__TEST__test_isolated() : OK")
+# end def
+
+def __TEST__test_direction():
+    # Tests de directions valides
+    test_dir = e.test_direction(2, 2, 4, 4)
+    assert test_dir, "la direction (2, 2) vers (4, 4) devrait être valide"
+    test_dir = e.test_direction(2, 2, 2, 4)
+    assert test_dir, "la direction (2, 2) vers (2, 4) devrait être valide"
+    test_dir = e.test_direction(2, 2, 0, 4)
+    assert test_dir, "la direction (2, 2) vers (0, 4) devrait être valide"
+    test_dir = e.test_direction(2, 2, 0, 2)
+    assert test_dir, "la direction (2, 2) vers (0, 2) devrait être valide"
+    test_dir = e.test_direction(2, 2, 1, 1)
+    assert test_dir, "la direction (2, 2) vers (1, 1) devrait être valide"
+    test_dir = e.test_direction(2, 2, 2, 1)
+    assert test_dir, "la direction (2, 2) vers (2, 1) devrait être valide"
+    test_dir = e.test_direction(2, 2, 3, 1)
+    assert test_dir, "la direction (2, 2) vers (3, 1) devrait être valide"
+    test_dir = e.test_direction(0, 2, 0, 4)
+    assert test_dir, "la direction (0, 2) vers (0, 4) devrait être valide"
+
+    # Tests de directions non valides
+    test_dir = e.test_direction(0, 0, 1, 4)
+    assert not test_dir, "la direction (0, 0) vers (1, 4) ne devrait pas " +\
+            "être valide"
+    test_dir = e.test_direction(2, 2, 4, 3)
+    assert not test_dir, "la direction (2, 2) vers (4, 3) ne devrait pas " +\
+            "être valide"
+
+    print("__TEST__test_direction() : OK")
+# end def
+
+def __TEST__test_between():
+    grid_1 = [[1, 2, 1, 2, 1],
+              [2, 0, 0, 1, 0],
+              [2, 1, 0, 2, 1],
+              [0, 0, 0, 0, 0],
+              [2, 0, 2, 0, 1]]
+    # tests de cas valides
+    test_between = e.test_between(grid_1, 1, 2, 3, 4)
+    assert test_between, "le mouvement (1, 2) vers (3, 4) devrait être valide"
+    test_between = e.test_between(grid_1, 3, 2, 3, 4)
+    assert test_between, "le mouvement (3, 2) vers (3, 4) devrait être valide"
+
+    # tests de cas non valides
+    test_between = e.test_between(grid_1, 1, 0, 1, 4)
+    assert not test_between, "le mouvement (1, 0) vers (1, 4) ne devrait " +\
+            "pas être valide"
+    test_between = e.test_between(grid_1, 0, 2, 2, 2)
+    assert not test_between, "le mouvement (0, 2) vers (2, 2) ne devrait " +\
+            "pas être valide"
+    
+    print("__TEST__test_between() : OK")
+# end def
+
+def __TEST__test_neighbour_move():
+    grid_1 = [[1, 2, 1, 2, 1],
+              [0, 0, 1, 0, 0],
+              [1, 0, 0, 0, 2],
+              [0, 2, 2, 0, 1],
+              [2, 1, 0, 0, 2]]
+    # Tests de déplacements valides
+    test_move = e.test_neighbour_move(grid_1, 2, 3, 4, 1)
+    assert test_move, "le mouvement (2, 3) vers (4, 1) devrait être possible"
+    test_move = e.test_neighbour_move(grid_1, 2, 1, 2, 2)
+    assert test_move, "le mouvement (2, 1) vers (2, 2) devrait être possible"
+
+    # Tests de déplacements non valides
+    test_move = e.test_neighbour_move(grid_1, 2, 3, 3, 1)
+    assert not test_move, "le mouvement (2, 3) vers (3, 1) ne devrait pas " +\
+            "être possible"
+    test_move = e.test_neighbour_move(grid_1, 0, 4, 2, 2)
+    assert not test_move, "le mouvement (0, 4) vers (2, 2) ne devrait pas " +\
+            "être possible"
+
+    print("__TEST__test_neighbour_move() : OK")
+# end def
+
+def __TEST__test_isolated_move():
+    grid_1 = [[1, 2, 1, 2, 1],
+              [2, 0, 0, 1, 0],
+              [2, 1, 0, 2, 1],
+              [0, 0, 0, 0, 0],
+              [2, 0, 2, 0, 1]]
+    isolated_1 = e.test_isolated(grid_1, 1)
+    isolated_2 = e.test_isolated(grid_1, 2)
+    # Tests de déplacements valides
+    test_move = e.test_isolated_move(isolated_1, grid_1, 4, 2, 4, 3)
+    assert test_move, "le mouvement (4, 2) vers (4, 3) devrait être possible"
+    test_move = e.test_isolated_move(isolated_2, grid_1, 0, 2, 1, 3)
+    assert test_move, "le mouvement (0, 2) vers (1, 3) devrait être possible"
+
+    # Tests de déplacements non valides
+    test_move = e.test_isolated_move(isolated_1, grid_1, 3, 1, 3, 3)
+    assert not test_move, "le mouvement (3, 1) vers (3, 3) ne devrait pas " +\
+            "être possible"
+    test_move = e.test_isolated_move(isolated_1, grid_1, 4, 2, 3, 4)
+    assert not test_move, "le mouvement (4, 2) vers (3, 4) ne devrait pas " +\
+            "être possible"
+    test_move = e.test_isolated_move(isolated_1, grid_1, 4, 2, 4, 1)
+    assert not test_move, "le mouvement (4, 2) vers (4, 1) ne devrait pas " +\
+            "être possible"
+
+    print("__TEST__test_isolated_move() : OK")
+# A FAIRE
 
 def __TEST__can_token_move():
     grid_1 = [[2, 2, 2, 2, 2],
@@ -136,162 +366,43 @@ def __TEST__can_player_move():
     print("__TEST__can_player_move() : OK")
 # end def
 
-def __TEST__test_isolated():
-    grid_1 = [[2, 2, 2, 2, 2],
-              [2, 0, 0, 0, 2],
-              [0, 0, 0, 0, 0],
-              [1, 0, 0, 0, 1],
-              [1, 1, 1, 1, 1]]
-    # test pour une grille sans pions isolé
-    test_isolated = e.test_isolated(grid_1, 1)
-    assert test_isolated == [], "__TEST__test_isolated() : " +\
-            "Le joueur 1 ne devrait pas avoir de pions isolés " +\
-            "dans la grille 1"
-    test_isolated = e.test_isolated(grid_1, 2)
-    assert test_isolated == [], "__TEST__test_isolated() : " +\
-            "Le joueur 2 ne devrait pas avoir de pions isolés " +\
-            "dans la grille 1"
-    
-    print("__TEST__test_isolated() : OK")
+# Les fonctions test_victory et test_draw du fichier entro.py
+# n'ont pas de retours ce qui les rends impossible a tester.
+# ======================================================================
 
-    grid_2 = [[1, 2, 1, 2, 1],
-              [2, 0, 0, 1, 0],
-              [2, 1, 0, 2, 1],
-              [0, 0, 0, 0, 0],
-              [2, 0, 2, 0, 1]]
-    # test pour une grille sans pions isolé
-    test_isolated = e.test_isolated(grid_2, 1)
-    assert test_isolated == [[4, 4]], "__TEST__test_isolated() : " +\
-            "Le joueur 1 ne devrait pas avoir de pions isolés " +\
-            "dans la grille 2"
-    test_isolated = e.test_isolated(grid_2, 2)
-    assert test_isolated == [[4, 0], [4, 2]], "__TEST__test_isolated() : " +\
-            "Le joueur 2 ne devrait pas avoir de pions isolés " +\
-            "dans la grille 2"
-# end def
-
-def __TEST__test_isolated_move():
+# ~* Fonction de gestion de partie
+def __TEST__calc_score():
     pass
-# end def
+# A FAIRE
 
-'''
-def test_deplacement_isole():
-    # Création des variables nécessaire aux fonctions
-    window = Tk()
-    grid = [[2, 2, 2, 2, 2],
-            [2, 0, 0, 0, 0],
-            [0, 0, 1, 0, 2],
-            [1, 0, 0, 0, 1],
-            [1, 1, 1, 1, 0]]
-    grid_canvas = Canvas(window)
-    lbl_message = Label(window)
-    
-    # Test de la fonction test_isolated()
-    isolated = []
-    isolated = test_isolated(grid,1)
-    assert isolated == [[2, 2]], "isolated devrait valoir [[2, 2]], il vaut :"\
-            + str(isolated)
+# Les autres fonctions de cette catégorie utilisent des fonctions
+# graphiques ce qui les rends impossible a tester.
+# ======================================================================
 
-    # Test de la fonction deplacement_isole()
-    move = deplacement_isole([True, 3, 4], isolated, grid, grid_canvas, 
-            3, 4, 4, 4, lbl_message)
+# ~* Fonction de déplacement
+def __TEST__move_token():
+    pass
+# A FAIRE
 
-    assert move == False, "Ce mouvement ne devrait pas etre possible "\
-            + "car il y a un pion isole"
-    
-    move = deplacement_isole([True, 3, 4], isolated, grid, grid_canvas, 
-            3, 4, 3, 3, lbl_message)
+# Les autres fonctions de cette catégorie utilisent des fonctions
+# graphiques ce qui les rends impossible a tester.
+# ======================================================================
 
-    assert move == True, "Ce mouvement devrait etre possible car a proximite "\
-            + "d'un pion isole"
+# ~* Fonctions de gestion de l'IA
+def __TEST__rand_select_token():
+    pass
+# A FAIRE
 
-    move = deplacement_isole([True, 3, 0], isolated, grid, grid_canvas, 
-            3, 0, 3, 1, lbl_message)
+def __TEST__rand_select_move():
+    pass
+# A FAIRE
 
-    assert move == True, "Ce mouvement devrait etre possible car a proximite "\
-            + "d'un pion isole"
+# La fonction auto_play de entro.py modifie l'interface graphique ce 
+# qui la rend impossible a tester.
+# ======================================================================
 
-    print("deplacement isolé OK")
-# end def
+# ~* Lancement des tests
+if __name__ == '__main__':
+    run_tests()
 
-def test_deplacement_voisin():
-    # Création des variables nécessaire aux fonctions
-    window = Tk()
-    grid = [[2, 2, 2, 2, 2],
-            [2, 0, 0, 0, 2],
-            [0, 0, 0, 0, 0],
-            [1, 0, 0, 0, 1],
-            [1, 1, 1, 1, 1]]
-    grid_canvas = Canvas(window)
-    lbl_message = Label(window)
-
-    # test de la fonction deplacement_voisin()
-    move = deplacement_voisin([True, 3, 0], grid, grid_canvas, 3, 0, 3, 3, 
-            lbl_message)
-    
-    assert move == True, "Ce mouvement devrait etre possible"
-
-    move = deplacement_voisin([True, 4, 0], grid, grid_canvas, 4, 0, 3, 3, 
-            lbl_message)
-    
-    assert move == False, "Ce mouvement devrait etre impossible"
-
-    move = deplacement_voisin([True, 4, 1], grid, grid_canvas, 4, 0, 2, 0,
-            lbl_message)
-    
-    assert move == False, "Ce mouvement devrait etre impossible"
-
-    print("deplacement voisin OK")
-# end def
-
-def test_victoire():
-    # Création des variables nécessaire aux fonctions
-    window = Tk()
-    grid = [[2, 2, 2, 2, 2],
-            [2, 0, 0, 0, 0],
-            [0, 0, 1, 0, 2],
-            [1, 0, 1, 0, 1],
-            [1, 1, 1, 0, 0]]
-    current_player = IntVar(window, value=1)
-    score_j1 = IntVar(window, value=0)
-    score_j2 = IntVar(window, value=0)
-    lbl_player = Label(window)
-    lbl_turn = Label(window)
-    lbl_message = Label(window)
-    victory = [False, False]
-
-    # Test de calc_score() et test_victory() [1]
-    calc_score(grid, score_j1, score_j2)
-
-    assert score_j1.get() == 1 and score_j2 .get() == 1, ""\
-            + "le score devrait etre 1 - 1"
-
-    test_victory(victory, current_player, lbl_player, lbl_turn, 
-            lbl_message, score_j1.get(), score_j2.get())
-
-    assert victory[0] == False and victory[1] == False, ""\
-            + "Aucun des deux joueurs n'a gagne"
-
-    # Re-création des variables nécessaire aux fonctions
-    grid = [[1, 2, 0, 1, 2],
-            [2, 0, 0, 2, 0],
-            [1, 0, 0, 1, 2],
-            [0, 2, 0, 0, 0],
-            [1, 0, 1, 2, 1]]
-
-    # Test de calc_score() et test_victory() [2]
-    calc_score(grid, score_j1, score_j2)
-
-    assert score_j1.get() == 7 and score_j2 .get() == 2, ""\
-            + "le score devrait etre 7 - 2"
-
-    test_victory(victory, current_player, lbl_player, lbl_turn, 
-            lbl_message, score_j1.get(), score_j2.get())
-            
-    assert victory[0] == True and victory[1] == False, ""\
-            + "le joueur 1 devrait avoir gagne"
-
-    print("victoire OK")
-# end def
-'''
-run_tests()
+    input("pressez [ENTRÉE] pour terminer")
