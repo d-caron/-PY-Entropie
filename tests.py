@@ -37,12 +37,14 @@
 # l'auteur ait le courage de vous en tenir rigueur.
 # ======================================================================
 import entro as e
+from tkinter import IntVar
 
 #=========================
 # FONCTION PRINCIPALE
 
 def run_tests():
     # ~* Fonctions de tests
+    print("\nPHASE 1 : Fonctions de tests")
     __TEST__est_dans_grille()
     __TEST__test_state()
     __TEST__test_isolated()
@@ -52,18 +54,22 @@ def run_tests():
     __TEST__test_isolated_move()
     __TEST__can_token_move()
     __TEST__can_player_move()
-
-    # ~* Fonction de gestion de partie
-    __TEST__calc_score()
+    print("\nPHASE 1 : VALIDÉE")
+    print("\n--------------------------")
 
     # ~* Fonction de déplacement
+    print("PHASE 2 : Fonction de déplacement")
     __TEST__move_token()
-
+    print("\nPHASE 2 : VALIDÉE")
+    print("\n--------------------------")
     # ~* Fonctions de gestion de l'IA
+    print("PHASE 3 : Fonctions de gestion de l'IA")
     __TEST__rand_select_token()
     __TEST__rand_select_move()
+    print("\nPHASE 3 : VALIDÉE")
+    print("\n--------------------------")
 
-    print("\n...")
+    print("...")
     print("Tous les tests sont OK")
 # end def
 
@@ -285,7 +291,7 @@ def __TEST__test_isolated_move():
             "être possible"
 
     print("__TEST__test_isolated_move() : OK")
-# A FAIRE
+# end def
 
 def __TEST__can_token_move():
     grid_1 = [[2, 2, 2, 2, 2],
@@ -371,18 +377,40 @@ def __TEST__can_player_move():
 # ======================================================================
 
 # ~* Fonction de gestion de partie
-def __TEST__calc_score():
-    pass
-# A FAIRE
 
-# Les autres fonctions de cette catégorie utilisent des fonctions
-# graphiques ce qui les rends impossible a tester.
+# Les fonctions de cette catégorie utilisent des fonctions graphiques 
+# ou n'ont pas de retour, ce qui les rends impossible a tester.
 # ======================================================================
 
 # ~* Fonction de déplacement
 def __TEST__move_token():
-    pass
-# A FAIRE
+    default_token_prop = [True, 0, 0]
+
+    grid_1 = [[2, 2, 2, 2, 2],
+              [2, 0, 0, 0, 2],
+              [0, 0, 0, 0, 0],
+              [1, 0, 0, 0, 1],
+              [1, 1, 1, 1, 1]]
+    # Test de mouvements dans la grille initiale
+    assert grid_1[0][0] == 2, "La case (0, 0) devrait être prise par le " +\
+            "joueur 2 avant le déplacement"
+    assert grid_1[2][2] == 0, "La case (2, 2) devrait être vide avant le " +\
+            "déplacement"
+
+    e.move_token(default_token_prop, grid_1, 0, 0, 2, 2)
+    assert grid_1[0][0] == 0, "La case (0, 0) devrait être vide après le " +\
+            "déplacement"
+    assert grid_1[2][2] == 2, "La case (2, 2) devrait être prise par le " +\
+            "joueur 2 après le déplacement"
+
+    e.move_token(default_token_prop, grid_1, 2, 2, 3, 2)
+    assert grid_1[2][2] == 0, "La case (2, 2) devrait être vide après le " +\
+            "déplacement"
+    assert grid_1[2][3] == 2, "La case (3, 2) devrait être prise par le " +\
+            "joueur 2 après le déplacement"
+
+    print("__TEST__move_token() : OK")
+# end def
 
 # Les autres fonctions de cette catégorie utilisent des fonctions
 # graphiques ce qui les rends impossible a tester.
@@ -390,14 +418,45 @@ def __TEST__move_token():
 
 # ~* Fonctions de gestion de l'IA
 def __TEST__rand_select_token():
-    pass
-# A FAIRE
+    grid_1 = [[2, 2, 2, 2, 2],
+              [2, 0, 0, 0, 2],
+              [0, 0, 0, 0, 0],
+              [1, 0, 0, 0, 1],
+              [1, 1, 1, 1, 1]]
+    token_list = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), 
+            (1, 0), (1, 4)]
+    # Test de génération multiple d'un pion aléatoire
+    for i in range(10):
+        assert token_list.count(e.rand_select_token(grid_1)) == 1,\
+                "Le pions sélectioné devrait être l'un de ceux présent " +\
+                "dans token_list"
+
+    print("__TEST__rand_select_token() : OK")
+# end def
 
 def __TEST__rand_select_move():
-    pass
-# A FAIRE
+    grid_1 = [[0, 0, 0, 0, 1],
+              [0, 0, 0, 0, 1],
+              [1, 1, 1, 1, 1],
+              [2, 0, 0, 0, 2],
+              [2, 2, 2, 2, 2]]
+    move_list = [(3, 1), (3, 2)]
+    # Test de génération multiple d'un mouvement aléatoire
+    for i in range(5):
+        assert move_list.count(e.rand_select_move((grid_1), 1, 4)) == 1,\
+                "Le pions (1, 4) devrait pouvoir se déplacer que " +\
+                "dans une des case de move_list"
 
-# La fonction auto_play de entro.py modifie l'interface graphique ce 
+    move_list = [(3, 2), (3, 3)]
+    for i in range(5):
+        assert move_list.count(e.rand_select_move((grid_1), 3, 4)) == 1,\
+                "Le pions (3, 4) devrait pouvoir se déplacer que " +\
+                "dans une des case de move_list"
+
+    print("__TEST__rand select_move() : OK")
+# end def
+
+# La fonction auto_play d'entro.py modifie l'interface graphique ce 
 # qui la rend impossible a tester.
 # ======================================================================
 
@@ -405,4 +464,4 @@ def __TEST__rand_select_move():
 if __name__ == '__main__':
     run_tests()
 
-    input("pressez [ENTRÉE] pour terminer")
+    input("\npressez [ENTRÉE] pour terminer")
