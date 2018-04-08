@@ -90,8 +90,8 @@ def run_tests():
 
 # ~* Fonctions d'affichage
 
-# Ces fonctions sont purement graphique. 
-# Il est don cimpossible de les tester.
+# Ces fonctio&ns sont purement graphique. 
+# Il est donc impossible de les tester.
 # ======================================================================
 
 # ~* Fonctions de tests
